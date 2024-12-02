@@ -4,5 +4,5 @@
 
 int main()
 {
-    return Solution2();
+    return Day1::Solution2();
 }

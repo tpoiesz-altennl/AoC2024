@@ -1,6 +1,8 @@
 #pragma once
 
-#include <sstream>
-
-int Solution1();
-int Solution2();
+class Day1
+{
+public:
+	static int Solution1();
+	static int Solution2();
+};

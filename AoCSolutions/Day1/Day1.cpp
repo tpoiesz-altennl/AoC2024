@@ -5,10 +5,12 @@
 #include <algorithm>
 #include <cmath>
 
-int Solution1()
+#include "Day1.h"
+
+int Day1::Solution1()
 {
-	std::ifstream inFile = ReadInputFile(__FILE__);
-	//std::ifstream inFile = ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
 
 	if (!inFile)
 	{
@@ -42,10 +44,10 @@ int Solution1()
 	return 0;
 }
 
-int Solution2()
+int Day1::Solution2()
 {
-	std::ifstream inFile = ReadInputFile(__FILE__);
-	//std::ifstream inFile = ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
 
 	if (!inFile)
 	{
