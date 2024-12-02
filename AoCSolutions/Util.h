@@ -59,4 +59,15 @@ private:
 		secLastSep = filepath.rfind('\\', lastSep - 1) + 1;
 		return filepath.substr(secLastSep, lastSep - secLastSep);
 	}
+
+	template<typename T>
+	static std::stringstream MakeSSFromVector(const std::vector<T>& vec)
+	{
+		std::stringstream ret;
+		for (const T& elem : vec)
+		{
+			ret << elem << ' ';
+		}
+		return ret;
+	}
 };
