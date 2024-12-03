@@ -131,9 +131,9 @@ int Day3::Solution1()
         }
     }
 
-    FileUtil::DebugFile dbg(__FILE__);
+    /*Testing::DebugFile dbg(__FILE__);
     int a = 0, b = 0;
-    //dbg.OutputMatches<std::string, int&, int&, bool>(mulStrings, &MatchMulSyntax, false, a, b, false);
+    dbg.OutputMatches<std::string, int&, int&, bool>(mulStrings, &MatchMulSyntax, false, a, b, false);*/
     int total = 0;
     for (std::string funny : mulStrings)
     {
@@ -164,6 +164,7 @@ int Day3::Solution2()
     {
         inputStrings.push_back(temp);
     }
+    inFile.close();
 
     std::vector<std::string> instructions;
     bool shouldExecute = true;

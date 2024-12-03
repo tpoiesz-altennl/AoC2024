@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <functional>
+#include <chrono>
 
 class FileUtil
 {
@@ -30,6 +31,18 @@ public:
 		return file;
 	}
 
+	static std::string MakeFolder(const std::string& filepath)
+	{
+		size_t lastSep, secLastSep;
+		lastSep = filepath.rfind('\\');
+		secLastSep = filepath.rfind('\\', lastSep - 1) + 1;
+		return filepath.substr(secLastSep, lastSep - secLastSep);
+	}
+};
+
+class Testing
+{
+public:
 	class DebugFile
 	{
 	public:
@@ -51,11 +64,13 @@ public:
 				std::cout << "Oh no!\n";
 			}
 
+			int caseNum = 0;
 			for (const T& testCase : testCases)
 			{
+				++caseNum;
 				if (conditional(testCase, argsForConditional...) == matchConditional)
 				{
-					m_File << testCase << std::endl;
+					m_File << caseNum << '\t' << testCase << std::endl;
 				}
 			}
 		}
@@ -63,13 +78,21 @@ public:
 		std::ofstream m_File;
 	};
 
-private:
-	static std::string MakeFolder(const std::string& filepath)
+	static void TimeSolution(std::function<int()> solution, unsigned long long numIterations)
 	{
-		size_t lastSep, secLastSep;
-		lastSep = filepath.rfind('\\');
-		secLastSep = filepath.rfind('\\', lastSep - 1) + 1;
-		return filepath.substr(secLastSep, lastSep - secLastSep);
+		double avgDuration = 0.;
+		for (int i = 0; i < numIterations; ++i)
+		{
+			auto t1 = std::chrono::steady_clock::now();
+			int exitCode = solution();
+			auto t2 = std::chrono::steady_clock::now();
+			avgDuration += std::chrono::duration<double>(t2 - t1).count();
+			if (exitCode)
+				exit(exitCode);
+		}
+		avgDuration /= numIterations;
+
+		std::cout << '\n' << avgDuration << '\n';
 	}
 };
 
