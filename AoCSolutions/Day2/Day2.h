@@ -1,6 +1,6 @@
 #pragma once
 
-class Day1
+class Day2
 {
 public:
 	static int Solution1();
