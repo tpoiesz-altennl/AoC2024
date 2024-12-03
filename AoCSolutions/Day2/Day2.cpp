@@ -126,7 +126,7 @@ int Day2::Solution1()
 	return 0;
 }
 
-int Day2::Solution2()
+int Day2::Solution2ver1()
 {
 	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
 	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
@@ -148,9 +148,10 @@ int Day2::Solution2()
 			levels.push_back(temp);
 		reports.push_back(levels);
 	}
+	inFile.close();
 
-	FileUtil::DebugFile dbg(__FILE__);
-	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);
+	/*Testing::DebugFile dbg(__FILE__);
+	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);*/
 
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
@@ -159,6 +160,123 @@ int Day2::Solution2()
 			++numSafe;
 	}
 
-	std::cout << numSafe;
+	//std::cout << numSafe;
+	return 0;
+}
+
+bool IsSafeDiffs(const std::vector<int>& diffs, bool sillyNothing)
+{
+	if (diffs.size() < 1)
+	{
+		return true;
+	}
+
+	auto ascCondition = [](int a) -> bool { return a > 0 && a <= 3; };
+	auto descCondition = [](int a) -> bool { return a < 0 && a >= -3; };
+
+	auto checkCondition = [&](const auto& condition) -> bool
+		{
+			bool skipped = false;
+			bool failed = false;
+			for (size_t i = 0; i < diffs.size(); ++i)
+			{
+				if (!condition(diffs[i]))
+				{
+					if (i < diffs.size() - 1 && condition(diffs[i] + diffs[i + 1]))
+					{
+						if (skipped)
+						{
+							failed = true;
+							break;
+						}
+						else
+						{
+							++i;
+							skipped = true;
+						}
+					}
+					else if (i > 0 && condition(diffs[i - 1] + diffs[i]))
+					{
+						if (skipped)
+						{
+							failed = true;
+							break;
+						}
+						else
+						{
+							skipped = true;
+						}
+					}
+					else if (i == 0 || i == diffs.size() - 1)
+					{
+						if (skipped)
+						{
+							failed = true;
+							break;
+						}
+						else
+						{
+							skipped = true;
+						}
+					}
+					else
+					{
+						failed = true;
+						break;
+					}
+				}
+			}
+			if (!failed)
+				return true;
+			else
+				return false;
+		};
+
+	if (checkCondition(ascCondition) || checkCondition(descCondition))
+		return true;
+	else
+		return false;
+}
+
+int Day2::Solution2ver2()
+{
+	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+
+	if (!inFile)
+	{
+		inFile.close();
+		return 1;
+	}
+
+	std::vector<horizontal_vector<int>> reports;
+	std::string reportString;
+	while (std::getline(inFile, reportString))
+	{
+		std::stringstream ss(reportString);
+		int temp = 0, prevTemp = 0;
+		ss >> prevTemp;
+		horizontal_vector<int> differences;
+		while (ss >> temp)
+		{
+			differences.push_back(temp - prevTemp);
+			prevTemp = temp;
+		}
+		reports.push_back(differences);
+	}
+	inFile.close();
+
+	/*Testing::DebugFile dbg(__FILE__);
+	dbg.OutputMatches<horizontal_vector<int>, bool> (reports, &IsSafeDiffs, false, false);*/
+
+	unsigned int numSafe = 0;
+	for (horizontal_vector<int> diffs : reports)
+	{
+		if (IsSafeDiffs(diffs, false))
+			++numSafe;
+	}
+
+	//std::cout << numSafe;
+
 	return 0;
 }
