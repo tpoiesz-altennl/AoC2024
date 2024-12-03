@@ -5,7 +5,7 @@
 #include <vector>
 #include "../Util.h"
 
-bool isSafe(const std::vector<int>& levels, bool maySkip = false)
+bool IsSafe(const std::vector<int>& levels, bool maySkip = false)
 {
 	if (levels.size() < 2)
 	{
@@ -23,16 +23,32 @@ bool isSafe(const std::vector<int>& levels, bool maySkip = false)
 			{
 				if (skipUsed || !maySkip)
 				{
-					return false;
+					if (!maySkip)
+						return false;
+					else
+					{
+						std::vector<int> fixedLevels = levels;
+						// Try skipping the first conflicting level instead of the second one
+						fixedLevels.erase(fixedLevels.begin() + prevIndex);
+						if (IsSafe(fixedLevels, false))
+							return true;
+						else
+						{
+							// Try skipping the first level
+							fixedLevels = levels;
+							fixedLevels.erase(fixedLevels.begin());
+							return IsSafe(fixedLevels, false);
+						}
+					}
 				}
 				else
 				{
 					skipUsed = true;
+					// Let prevIndex trail when using a skip
 				}
 			}
 			else
 			{
-				// Let prevIndex trail when using a skip
 				prevIndex = i;
 			}
 		}
@@ -42,16 +58,32 @@ bool isSafe(const std::vector<int>& levels, bool maySkip = false)
 			{
 				if (skipUsed || !maySkip)
 				{
-					return false;
+					if (!maySkip)
+						return false;
+					else
+					{
+						std::vector<int> fixedLevels = levels;
+						// Try skipping the first conflicting level instead of the second one
+						fixedLevels.erase(fixedLevels.begin() + prevIndex);
+						if (IsSafe(fixedLevels, false))
+							return true;
+						else
+						{
+							// Try skipping the first level
+							fixedLevels = levels;
+							fixedLevels.erase(fixedLevels.begin());
+							return IsSafe(fixedLevels, false);
+						}
+					}
 				}
 				else
 				{
 					skipUsed = true;
+					// Let prevIndex trail when using a skip
 				}
 			}
 			else
 			{
-				// Let prevIndex trail when using a skip
 				prevIndex = i;
 			}
 		}
@@ -86,7 +118,7 @@ int Day2::Solution1()
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
 	{
-		if (isSafe(levels))
+		if (IsSafe(levels))
 			++numSafe;
 	}
 
@@ -105,52 +137,26 @@ int Day2::Solution2()
 		return 1;
 	}
 
-	std::vector<std::vector<int>> reports;
+	std::vector<horizontal_vector<int>> reports;
 	std::string reportString;
 	while (std::getline(inFile, reportString))
 	{
 		std::stringstream ss(reportString);
-		std::vector<int> levels{
-			std::istream_iterator<int>(ss),
-			std::istream_iterator<int>()
-		};
+		int temp = 0;
+		horizontal_vector<int> levels;
+		while (ss >> temp)
+			levels.push_back(temp);
 		reports.push_back(levels);
 	}
 
-	//FileUtil::OutputMatches<std::vector<int>, bool>(__FILE__, reports, &isSafe, true, true);
+	FileUtil::DebugFile dbg(__FILE__);
+	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);
 
-	int count = 0;
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
 	{
-		++count;
-		if (isSafe(levels, true))
+		if (IsSafe(levels, true))
 			++numSafe;
-		else
-		{
-			// If only the first level is wrong, we need to check that separately
-			std::vector<int> fixedLevels = levels;
-			fixedLevels.erase(fixedLevels.begin());
-			if (isSafe(fixedLevels, false))
-				++numSafe;
-			else
-			{
-				// Could be that our assumption for ascending/descending got screwed up by the second level being wrong, 
-				// so we might need to check again with the second level removed
-				fixedLevels = levels;
-				if ((fixedLevels[1] >= fixedLevels[0] && fixedLevels[2] < fixedLevels[0]) ||
-					(fixedLevels[1] <= fixedLevels[0] && fixedLevels[2] > fixedLevels[0]))
-				{
-					fixedLevels.erase(fixedLevels.begin() + 1);
-					if (isSafe(fixedLevels, false))
-						++numSafe;
-					else
-					{
-						std::cout << count << '\n';
-					}
-				}
-			}
-		}
 	}
 
 	std::cout << numSafe;
