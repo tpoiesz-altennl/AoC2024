@@ -94,8 +94,8 @@ bool IsSafe(const std::vector<int>& levels, bool maySkip = false)
 
 int Day2::Solution1()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
 
 	if (!inFile)
 	{
@@ -128,8 +128,8 @@ int Day2::Solution1()
 
 int Day2::Solution2ver1()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
 
 	if (!inFile)
 	{
@@ -240,8 +240,8 @@ bool IsSafeDiffs(const std::vector<int>& diffs)
 
 int Day2::Solution2ver2()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
 
 	if (!inFile)
 	{

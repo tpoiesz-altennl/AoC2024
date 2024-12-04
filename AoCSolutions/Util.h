@@ -11,7 +11,7 @@
 class FileUtil
 {
 public:
-	static std::ifstream ReadInputFile(std::string callingLocation)
+	static std::ifstream OpenInputFile(std::string callingLocation)
 	{
 		std::ifstream file(MakeFolder(callingLocation) + "/InputFile.txt");
 		if (!file)
@@ -21,7 +21,28 @@ public:
 		return file;
 	}
 
-	static std::ifstream ReadTestFile(std::string callingLocation)
+	template<typename T>
+	static std::vector<T> ReadInputFileIntoVec(std::string callingLocation)
+	{
+		std::ifstream file = OpenInputFile(callingLocation);
+		if (!file)
+		{
+			file.close();
+			return std::vector<T>();
+		}
+
+		std::vector<T> ret;
+		T temp;
+		while (file >> temp)
+		{
+			ret.push_back(temp);
+		}
+		file.close();
+
+		return ret;
+	}
+
+	static std::ifstream OpenTestFile(std::string callingLocation)
 	{
 		std::ifstream file(MakeFolder(callingLocation) + "/TestFile.txt");
 		if (!file)
@@ -29,6 +50,27 @@ public:
 			std::cout << "Oh no!\n";
 		}
 		return file;
+	}
+
+	template<typename T>
+	static std::vector<T> ReadTestFileIntoVec(std::string callingLocation)
+	{
+		std::ifstream file = OpenTestFile(callingLocation);
+		if (!file)
+		{
+			file.close();
+			return std::vector<T>();
+		}
+
+		std::vector<T> ret;
+		T temp;
+		while (file >> temp)
+		{
+			ret.push_back(temp);
+		}
+		file.close();
+
+		return ret;
 	}
 
 	static std::string MakeFolder(const std::string& filepath)
