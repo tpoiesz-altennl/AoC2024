@@ -9,8 +9,6 @@
 
 int main()
 {
-    int iterations = 1000;
-    Testing::TimeSolution(&Day2::Solution2ver1, iterations);
-    Testing::TimeSolution(&Day2::Solution2ver2, iterations);
-    return 0;
+    int exitCode = Day2::Solution1();
+    return exitCode;
 }

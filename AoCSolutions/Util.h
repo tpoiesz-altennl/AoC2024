@@ -170,6 +170,22 @@ std::ostream& operator<<(std::ostream& stream, std::vector<T> operand)
 	return stream;
 }
 
+template<typename T>
+std::istream& operator>>(std::istream& stream, std::vector<T>& operand)
+{
+	operand.clear();
+	std::string str = "";
+	std::getline(stream, str);
+	std::stringstream ss(str);
+	T temp;
+	while (ss >> temp)
+	{
+		operand.push_back(temp);
+	}
+
+	return stream;
+}
+
 template<class T>
 class horizontal_vector : public std::vector<T>
 {

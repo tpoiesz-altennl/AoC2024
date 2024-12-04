@@ -94,26 +94,8 @@ bool IsSafe(const std::vector<int>& levels, bool maySkip = false)
 
 int Day2::Solution1()
 {
-	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
-
-	if (!inFile)
-	{
-		inFile.close();
-		return 1;
-	}
-
-	std::vector<std::vector<int>> reports;
-	std::string reportString;
-	while (std::getline(inFile, reportString))
-	{
-		std::stringstream ss(reportString);
-		std::vector<int> levels {
-			std::istream_iterator<int>(ss),
-			std::istream_iterator<int>()
-		};
-		reports.push_back(levels);
-	}
+	std::vector<std::vector<int>> reports = FileUtil::ReadInputFileIntoVec<std::vector<int>>(__FILE__);
+	std::vector<std::vector<int>> reports = FileUtil::ReadTestFileIntoVec<std::vector<int>>(__FILE__);
 
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
