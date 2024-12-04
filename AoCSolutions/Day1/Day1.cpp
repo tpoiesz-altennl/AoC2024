@@ -9,8 +9,8 @@
 
 int Day1::Solution1()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
 
 	if (!inFile)
 	{
@@ -46,8 +46,8 @@ int Day1::Solution1()
 
 int Day1::Solution2()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
 
 	if (!inFile)
 	{

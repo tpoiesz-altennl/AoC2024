@@ -11,7 +11,7 @@
 class FileUtil
 {
 public:
-	static std::ifstream ReadInputFile(std::string callingLocation)
+	static std::ifstream OpenInputFile(std::string callingLocation)
 	{
 		std::ifstream file(MakeFolder(callingLocation) + "/InputFile.txt");
 		if (!file)
@@ -21,7 +21,28 @@ public:
 		return file;
 	}
 
-	static std::ifstream ReadTestFile(std::string callingLocation)
+	template<typename T>
+	static std::vector<T> ReadInputFileIntoVec(std::string callingLocation)
+	{
+		std::ifstream file = OpenInputFile(callingLocation);
+		if (!file)
+		{
+			file.close();
+			return std::vector<T>();
+		}
+
+		std::vector<T> ret;
+		T temp;
+		while (file >> temp)
+		{
+			ret.push_back(temp);
+		}
+		file.close();
+
+		return ret;
+	}
+
+	static std::ifstream OpenTestFile(std::string callingLocation)
 	{
 		std::ifstream file(MakeFolder(callingLocation) + "/TestFile.txt");
 		if (!file)
@@ -29,6 +50,27 @@ public:
 			std::cout << "Oh no!\n";
 		}
 		return file;
+	}
+
+	template<typename T>
+	static std::vector<T> ReadTestFileIntoVec(std::string callingLocation)
+	{
+		std::ifstream file = OpenTestFile(callingLocation);
+		if (!file)
+		{
+			file.close();
+			return std::vector<T>();
+		}
+
+		std::vector<T> ret;
+		T temp;
+		while (file >> temp)
+		{
+			ret.push_back(temp);
+		}
+		file.close();
+
+		return ret;
 	}
 
 	static std::string MakeFolder(const std::string& filepath)
@@ -57,7 +99,7 @@ public:
 
 		template<typename T, typename... Args>
 		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&, Args...)> conditional,
-			bool matchConditional = true, Args... argsForConditional)
+			bool matchConditional, Args... argsForConditional)
 		{
 			if (!m_File)
 			{
@@ -74,6 +116,28 @@ public:
 				}
 			}
 		}
+
+		// Specialisation for no Args...
+		template<typename T>
+		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&)> conditional,
+			bool matchConditional)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+			}
+
+			int caseNum = 0;
+			for (const T& testCase : testCases)
+			{
+				++caseNum;
+				if (conditional(testCase) == matchConditional)
+				{
+					m_File << caseNum << '\t' << testCase << std::endl;
+				}
+			}
+		}
+
 	private:
 		std::ofstream m_File;
 	};
@@ -103,6 +167,22 @@ std::ostream& operator<<(std::ostream& stream, std::vector<T> operand)
 	{
 		stream << elem << '\n';
 	}
+	return stream;
+}
+
+template<typename T>
+std::istream& operator>>(std::istream& stream, std::vector<T>& operand)
+{
+	operand.clear();
+	std::string str = "";
+	std::getline(stream, str);
+	std::stringstream ss(str);
+	T temp;
+	while (ss >> temp)
+	{
+		operand.push_back(temp);
+	}
+
 	return stream;
 }
 

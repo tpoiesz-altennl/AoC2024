@@ -94,26 +94,8 @@ bool IsSafe(const std::vector<int>& levels, bool maySkip = false)
 
 int Day2::Solution1()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
-
-	if (!inFile)
-	{
-		inFile.close();
-		return 1;
-	}
-
-	std::vector<std::vector<int>> reports;
-	std::string reportString;
-	while (std::getline(inFile, reportString))
-	{
-		std::stringstream ss(reportString);
-		std::vector<int> levels {
-			std::istream_iterator<int>(ss),
-			std::istream_iterator<int>()
-		};
-		reports.push_back(levels);
-	}
+	std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputFileIntoVec<horizontal_vector<int>>(__FILE__);
+	//std::vector<horizontal_vector<int>> reports = FileUtil::ReadTestFileIntoVec<horizontal_vector<int>>(__FILE__);
 
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
@@ -122,36 +104,17 @@ int Day2::Solution1()
 			++numSafe;
 	}
 
-	std::cout << numSafe;
+	std::cout << numSafe << std::endl;
 	return 0;
 }
 
 int Day2::Solution2ver1()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+	std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputFileIntoVec<horizontal_vector<int>>(__FILE__);
+	//std::vector<horizontal_vector<int>> reports = FileUtil::ReadTestFileIntoVec<horizontal_vector<int>>(__FILE__);
 
-	if (!inFile)
-	{
-		inFile.close();
-		return 1;
-	}
-
-	std::vector<horizontal_vector<int>> reports;
-	std::string reportString;
-	while (std::getline(inFile, reportString))
-	{
-		std::stringstream ss(reportString);
-		int temp = 0;
-		horizontal_vector<int> levels;
-		while (ss >> temp)
-			levels.push_back(temp);
-		reports.push_back(levels);
-	}
-	inFile.close();
-
-	/*Testing::DebugFile dbg(__FILE__);
-	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);*/
+	Testing::DebugFile dbg(__FILE__);
+	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);
 
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
@@ -160,11 +123,11 @@ int Day2::Solution2ver1()
 			++numSafe;
 	}
 
-	//std::cout << numSafe;
+	std::cout << numSafe;
 	return 0;
 }
 
-bool IsSafeDiffs(const std::vector<int>& diffs, bool sillyNothing)
+bool IsSafeDiffs(const std::vector<int>& diffs)
 {
 	if (diffs.size() < 1)
 	{
@@ -240,8 +203,8 @@ bool IsSafeDiffs(const std::vector<int>& diffs, bool sillyNothing)
 
 int Day2::Solution2ver2()
 {
-	std::ifstream inFile = FileUtil::ReadInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::ReadTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
+	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
 
 	if (!inFile)
 	{
@@ -266,13 +229,13 @@ int Day2::Solution2ver2()
 	}
 	inFile.close();
 
-	/*Testing::DebugFile dbg(__FILE__);
-	dbg.OutputMatches<horizontal_vector<int>, bool> (reports, &IsSafeDiffs, false, false);*/
+	Testing::DebugFile dbg(__FILE__);
+	dbg.OutputMatches<horizontal_vector<int>> (reports, &IsSafeDiffs, false);
 
 	unsigned int numSafe = 0;
 	for (horizontal_vector<int> diffs : reports)
 	{
-		if (IsSafeDiffs(diffs, false))
+		if (IsSafeDiffs(diffs))
 			++numSafe;
 	}
 
