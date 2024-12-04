@@ -150,8 +150,8 @@ int Day2::Solution2ver1()
 	}
 	inFile.close();
 
-	/*Testing::DebugFile dbg(__FILE__);
-	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);*/
+	Testing::DebugFile dbg(__FILE__);
+	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);
 
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
@@ -164,7 +164,7 @@ int Day2::Solution2ver1()
 	return 0;
 }
 
-bool IsSafeDiffs(const std::vector<int>& diffs, bool sillyNothing)
+bool IsSafeDiffs(const std::vector<int>& diffs)
 {
 	if (diffs.size() < 1)
 	{
@@ -266,13 +266,13 @@ int Day2::Solution2ver2()
 	}
 	inFile.close();
 
-	/*Testing::DebugFile dbg(__FILE__);
-	dbg.OutputMatches<horizontal_vector<int>, bool> (reports, &IsSafeDiffs, false, false);*/
+	Testing::DebugFile dbg(__FILE__);
+	dbg.OutputMatches<horizontal_vector<int>> (reports, &IsSafeDiffs, false);
 
 	unsigned int numSafe = 0;
 	for (horizontal_vector<int> diffs : reports)
 	{
-		if (IsSafeDiffs(diffs, false))
+		if (IsSafeDiffs(diffs))
 			++numSafe;
 	}
 

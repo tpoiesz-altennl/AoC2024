@@ -57,7 +57,7 @@ public:
 
 		template<typename T, typename... Args>
 		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&, Args...)> conditional,
-			bool matchConditional = true, Args... argsForConditional)
+			bool matchConditional, Args... argsForConditional)
 		{
 			if (!m_File)
 			{
@@ -74,6 +74,28 @@ public:
 				}
 			}
 		}
+
+		// Specialisation for no Args...
+		template<typename T>
+		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&)> conditional,
+			bool matchConditional)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+			}
+
+			int caseNum = 0;
+			for (const T& testCase : testCases)
+			{
+				++caseNum;
+				if (conditional(testCase) == matchConditional)
+				{
+					m_File << caseNum << '\t' << testCase << std::endl;
+				}
+			}
+		}
+
 	private:
 		std::ofstream m_File;
 	};
