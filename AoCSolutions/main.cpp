@@ -10,5 +10,9 @@
 int main()
 {
     int exitCode = Day2::Solution1();
+    if (exitCode)
+        return exitCode;
+
+    exitCode = Day2::Solution2ver1();
     return exitCode;
 }
