@@ -8,6 +8,9 @@
 #include <functional>
 #include <chrono>
 
+template<typename T>
+class horizontal_vector;
+
 class FileUtil
 {
 public:
@@ -80,6 +83,34 @@ public:
 		secLastSep = filepath.rfind('\\', lastSep - 1) + 1;
 		return filepath.substr(secLastSep, lastSep - secLastSep);
 	}
+
+	template<typename T>
+	static std::vector<horizontal_vector<T>> SplitInputLines(const std::vector<std::string>& input, const char divider,
+		std::vector<std::string>& incompatibleLines)
+	{
+		std::vector<horizontal_vector<T>> ret;
+		for (const std::string& s : input)
+		{
+			if (size_t pos = s.find(divider); pos != std::string::npos)
+			{
+				horizontal_vector<T> temp;
+				std::stringstream ss(s);
+				T elem;
+				char throwaway;
+				do
+				{
+					ss >> elem >> throwaway;
+					temp.push_back(elem);
+				} while (throwaway == divider && !ss.eof());
+				
+				ret.push_back(temp);
+			}
+			else
+				incompatibleLines.push_back(s);
+		}
+
+		return ret;
+	}
 };
 
 class Testing
@@ -90,7 +121,8 @@ public:
 	public:
 		DebugFile(const std::string callingLocation)
 		{
-			m_File = std::ofstream(FileUtil::MakeFolder(callingLocation) + "/OutputFile.txt");
+			m_Address = FileUtil::MakeFolder(callingLocation) + "/OutputFile.txt";
+			m_File = std::ofstream(m_Address);
 		}
 		~DebugFile()
 		{
@@ -104,6 +136,7 @@ public:
 			if (!m_File)
 			{
 				std::cout << "Oh no!\n";
+				return;
 			}
 
 			int caseNum = 0;
@@ -115,6 +148,36 @@ public:
 					m_File << caseNum << '\t' << testCase << std::endl;
 				}
 			}
+			m_File.flush();
+		}
+
+		template<typename T>
+		void OutputRule(const T& rule)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			m_File << rule << '\n';
+			m_File.flush();
+		}
+
+		template<typename T>
+		void OutputResultGrid(const std::vector<T>& grid)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			for (const T& t : grid)
+			{
+				m_File << t << '\n';
+			}
+			m_File.flush();
 		}
 
 		// Specialisation for no Args...
@@ -125,6 +188,7 @@ public:
 			if (!m_File)
 			{
 				std::cout << "Oh no!\n";
+				return;
 			}
 
 			int caseNum = 0;
@@ -138,8 +202,21 @@ public:
 			}
 		}
 
+		void Overwrite()
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			m_File.close();
+			m_File = std::ofstream(m_Address);
+		}
+
 	private:
 		std::ofstream m_File;
+		std::string m_Address;
 	};
 
 	static void TimeSolution(std::function<int()> solution, unsigned long long numIterations)
