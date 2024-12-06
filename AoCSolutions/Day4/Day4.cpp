@@ -407,7 +407,7 @@ int Day4::Solution2()
 	std::vector<std::string> grid = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
-	if (grid.size() < 1 || grid[0].empty())
+	if (grid.size() < 4 || grid[0].size() < 4)
 		return 1;
 
 	unsigned int totalXMASses = 0;
