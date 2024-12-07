@@ -47,34 +47,49 @@ public:
 		return ret;
 	}
 
-	template<typename T1, typename T2>
-	static std::unordered_map<T1, T2> ReadInputIntoMap(std::string callingLocation, std::vector<std::string>& incompatibleLines,
-		char separator = NULL, bool isTestFile = false)
+	// WIP
+	/*template<typename T1, typename T2, typename ContainerType>
+	static std::unordered_map<T1, ContainerType> ReadInputIntoMap(std::string callingLocation, std::vector<std::string>& incompatibleLines,
+		char separator = NULL, bool uniqueKeysOnly = true, bool isTestFile = false)
 	{
 		std::ifstream file = OpenFile(callingLocation, isTestFile);
 		if (!file)
 		{
 			file.close();
-			return std::unordered_map<T1, T2>();
+			return std::unordered_map<T1, ContainerType>();
 		}
 
-		std::unordered_map<T1, T2> ret;
-		T1 temp;
-		T2 temp2;
+		std::unordered_map<T1, ContainerType> ret;
+		T1 tempKey;
+		ContainerType tempVal;
 		std::string line;
 		while (std::getline(file, line))
 		{
 			if (separator)
 			{
-				size_t sepPos = && line.find(separator);
+				size_t sepPos = line.find(separator);
 				if (sepPos != std::string::npos)
 				{
 					std::stringstream ss(line.substr(0, sepPos));
-					ss >> temp;
+					ss >> tempKey;
 					ss.clear();
 					ss(line.substr(sepPos, line.size() - sepPos));
-					ss >> temp2;
-					ret.emplace(std::make_pair<T1, T2>(temp, temp2));
+					ss >> tempVal;
+
+					if (uniqueKeysOnly)
+						ret.emplace(std::make_pair<T1, ContainerType>(tempKey, tempVal));
+					else
+					{
+						if (auto it = ret.find(tempKey); it != ret.end())
+						{
+							if (std::is_same<std::vector<T2>,ContainerType>::value)
+							{
+								(*it).second.push_back(tempVal);
+							}
+						}
+						else
+							ret.emplace(std::make_pair<T1, ContainerType>(tempKey, { tempVal }));
+					}
 				}
 				else
 					incompatibleLines.push_back(line);
@@ -82,13 +97,21 @@ public:
 			else
 			{
 				std::stringstream ss(line);
-				ss >> temp >> temp2;
-				ret.emplace(std::make_pair<T1, T2>(temp, temp2));
+				ss >> tempKey >> tempVal;
+				if (uniqueKeysOnly)
+					ret.emplace(std::make_pair<T1, ContainerType>(tempKey, tempVal));
+				else
+				{
+					if (auto it = ret.find(tempKey); it != ret.end())
+						(*it).push_back(tempKey);
+					else;
+						//ret.emplace(std::make_pair<T1, std::set<ContainerType>>(tempKey, std::set<T2>(tempVal)));
+				}
 			}
 		}
 		file.close();
 		return ret;
-	}
+	}*/
 
 	static std::string MakeFolder(const std::string& filepath)
 	{
@@ -99,13 +122,13 @@ public:
 	}
 
 	template<typename T>
-	static std::vector<horizontal_vector<T>> SplitInputLines(const std::vector<std::string>& input, const char divider,
+	static std::vector<horizontal_vector<T>> SplitInputLines(const std::vector<std::string>& input, const char separator,
 		std::vector<std::string>& incompatibleLines)
 	{
 		std::vector<horizontal_vector<T>> ret;
 		for (const std::string& s : input)
 		{
-			if (size_t pos = s.find(divider); pos != std::string::npos)
+			if (size_t pos = s.find(separator); pos != std::string::npos)
 			{
 				horizontal_vector<T> temp;
 				std::stringstream ss(s);
@@ -115,7 +138,7 @@ public:
 				{
 					ss >> elem >> throwaway;
 					temp.push_back(elem);
-				} while (throwaway == divider && !ss.eof());
+				} while (throwaway == separator && !ss.eof());
 				
 				ret.push_back(temp);
 			}
@@ -252,7 +275,7 @@ public:
 };
 
 template<typename T>
-std::ostream& operator<<(std::ostream& stream, std::vector<T> operand)
+std::ostream& operator<<(std::ostream& stream, const std::vector<T>& operand)
 {
 	for (const T& elem : operand)
 	{
@@ -274,6 +297,16 @@ std::istream& operator>>(std::istream& stream, std::vector<T>& operand)
 		operand.push_back(temp);
 	}
 
+	return stream;
+}
+
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& stream, const std::unordered_map<T1, T2>& operand)
+{
+	for (const auto& pair : operand)
+	{
+		stream << pair.first << ": " << pair.second;
+	}
 	return stream;
 }
 
