@@ -236,8 +236,8 @@ bool MoveGuard(std::vector<std::string>& map, int& numSteps, int& guardPosX, int
 
 int Day6::Solution1()
 {
-	//std::vector<std::string> map = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> input = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> map = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	int guardPosX, guardPosY;
 	OrthDirection initDir = FindGuard(input, guardPosX, guardPosY);
@@ -313,8 +313,8 @@ bool GuardLoops(std::vector<std::string> map, int posX, int posY, OrthDirection 
 
 int Day6::Solution2()
 {
-	//std::vector<std::string> map = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> map = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> map = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> map = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	int guardPosX, guardPosY;
 	OrthDirection dir = FindGuard(map, guardPosX, guardPosY);

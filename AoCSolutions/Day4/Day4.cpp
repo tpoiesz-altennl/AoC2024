@@ -213,8 +213,8 @@ int MakesXMASver1(const std::vector<std::string>& grid, const unsigned int index
 
 int Day4::Solution1ver1()
 {
-	//std::vector<std::string> grid = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> grid = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
 	if (grid.size() < 4 || grid[0].size() < 4)
@@ -229,7 +229,7 @@ int Day4::Solution1ver1()
 		}
 	}
 
-	//std::cout << totalXMASses;
+	std::cout << totalXMASses;
 
 	return 0;
 }
@@ -350,8 +350,8 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 
 int Day4::Solution1ver2()
 {
-	//std::vector<std::string> grid = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> grid = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
 	if (grid.size() < 4 || grid[0].size() < 4)
@@ -363,7 +363,7 @@ int Day4::Solution1ver2()
 		totalXMASses += MakesXMASver2(grid, d);
 	}
 
-	//std::cout << totalXMASses;
+	std::cout << totalXMASses;
 
 	return 0;
 }
@@ -403,8 +403,8 @@ bool MakesMASX(const std::vector<std::string>& grid, const unsigned int indexX, 
 
 int Day4::Solution2()
 {
-	//std::vector<std::string> grid = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> grid = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
 	if (grid.size() < 4 || grid[0].size() < 4)

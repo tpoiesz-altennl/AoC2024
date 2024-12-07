@@ -14,6 +14,7 @@ bool MatchMulSyntax(const std::string& input, int& operand1, int& operand2, bool
     std::smatch m3;
     std::regex threeDigit("([0-9][0-9][0-9])");
     bool threeDigitMatch = std::regex_search(input, m3, threeDigit);
+    std::regex_match(input, m3, threeDigit);
 
     std::smatch m2;
     std::regex twoDigit("([0-9][0-9])");
@@ -102,8 +103,8 @@ bool MatchMulSyntax(const std::string& input, int& operand1, int& operand2, bool
 
 int Day3::Solution1()
 {
-    std::vector<std::string> inputStrings = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
-    //std::vector<std::string> inputStrings = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
+    std::vector<std::string> inputStrings = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+    //std::vector<std::string> inputStrings = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
 
     std::vector<std::string> mulStrings;
     for (std::string str : inputStrings)
@@ -136,8 +137,8 @@ int Day3::Solution1()
 
 int Day3::Solution2()
 {
-    std::vector<std::string> inputStrings = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
-    //std::vector<std::string> inputStrings = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
+    std::vector<std::string> inputStrings = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+    //std::vector<std::string> inputStrings = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
 
     std::vector<std::string> instructions;
     bool shouldExecute = true;
