@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <unordered_map>
 #include <functional>
 #include <chrono>
 
@@ -14,9 +15,10 @@ class horizontal_vector;
 class FileUtil
 {
 public:
-	static std::ifstream OpenInputFile(std::string callingLocation)
+	static std::ifstream OpenFile(std::string callingLocation, bool isTestFile = false)
 	{
-		std::ifstream file(MakeFolder(callingLocation) + "/InputFile.txt");
+		std::string fileName = (isTestFile ? "/TestFile.txt" : "/InputFile.txt");
+		std::ifstream file(MakeFolder(callingLocation) + fileName);
 		if (!file)
 		{
 			std::cout << "Oh no!\n";
@@ -25,9 +27,9 @@ public:
 	}
 
 	template<typename T>
-	static std::vector<T> ReadInputFileIntoVec(std::string callingLocation)
+	static std::vector<T> ReadInputIntoVec(std::string callingLocation, bool isTestFile = false)
 	{
-		std::ifstream file = OpenInputFile(callingLocation);
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
 		if (!file)
 		{
 			file.close();
@@ -45,34 +47,46 @@ public:
 		return ret;
 	}
 
-	static std::ifstream OpenTestFile(std::string callingLocation)
+	template<typename T1, typename T2>
+	static std::unordered_map<T1, T2> ReadInputIntoMap(std::string callingLocation, std::vector<std::string>& incompatibleLines,
+		char separator = NULL, bool isTestFile = false)
 	{
-		std::ifstream file(MakeFolder(callingLocation) + "/TestFile.txt");
-		if (!file)
-		{
-			std::cout << "Oh no!\n";
-		}
-		return file;
-	}
-
-	template<typename T>
-	static std::vector<T> ReadTestFileIntoVec(std::string callingLocation)
-	{
-		std::ifstream file = OpenTestFile(callingLocation);
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
 		if (!file)
 		{
 			file.close();
-			return std::vector<T>();
+			return std::unordered_map<T1, T2>();
 		}
 
-		std::vector<T> ret;
-		T temp;
-		while (file >> temp)
+		std::unordered_map<T1, T2> ret;
+		T1 temp;
+		T2 temp2;
+		std::string line;
+		while (std::getline(file, line))
 		{
-			ret.push_back(temp);
+			if (separator)
+			{
+				size_t sepPos = && line.find(separator);
+				if (sepPos != std::string::npos)
+				{
+					std::stringstream ss(line.substr(0, sepPos));
+					ss >> temp;
+					ss.clear();
+					ss(line.substr(sepPos, line.size() - sepPos));
+					ss >> temp2;
+					ret.emplace(std::make_pair<T1, T2>(temp, temp2));
+				}
+				else
+					incompatibleLines.push_back(line);
+			}
+			else
+			{
+				std::stringstream ss(line);
+				ss >> temp >> temp2;
+				ret.emplace(std::make_pair<T1, T2>(temp, temp2));
+			}
 		}
 		file.close();
-
 		return ret;
 	}
 

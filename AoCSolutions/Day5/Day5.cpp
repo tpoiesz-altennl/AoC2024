@@ -158,8 +158,8 @@ bool MatchToRulesetVer1(const horizontal_vector<int>& testCase, const horizontal
 
 int Day5::Solution1ver1()
 {
-	//std::vector<std::string> input = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> input = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	std::vector<std::string> remainingLines;
 	std::vector<horizontal_vector<int>> rules = FileUtil::SplitInputLines<int>(input, '|', remainingLines);
@@ -219,8 +219,8 @@ bool MatchToRulesetVer2(const horizontal_vector<int>& testCase, const std::map<i
 
 int Day5::Solution1ver2()
 {
-	//std::vector<std::string> input = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> input = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	std::vector<std::string> remainingLines;
 	std::vector<horizontal_vector<int>> rules = FileUtil::SplitInputLines<int>(input, '|', remainingLines);
@@ -266,8 +266,8 @@ bool MatchToRulesetVer3(const horizontal_vector<int>& testCase, const std::map<i
 
 int Day5::Solution2()
 {
-	//std::vector<std::string> input = FileUtil::ReadTestFileIntoVec<std::string>(__FILE__);
-	std::vector<std::string> input = FileUtil::ReadInputFileIntoVec<std::string>(__FILE__);
+	//std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	std::vector<std::string> remainingLines;
 	std::vector<horizontal_vector<int>> rules = FileUtil::SplitInputLines<int>(input, '|', remainingLines);

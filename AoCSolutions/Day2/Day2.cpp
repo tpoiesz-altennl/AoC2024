@@ -94,8 +94,8 @@ bool IsSafe(const std::vector<int>& levels, bool maySkip = false)
 
 int Day2::Solution1()
 {
-	std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputFileIntoVec<horizontal_vector<int>>(__FILE__);
-	//std::vector<horizontal_vector<int>> reports = FileUtil::ReadTestFileIntoVec<horizontal_vector<int>>(__FILE__);
+	std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputIntoVec<horizontal_vector<int>>(__FILE__);
+	//std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputIntoVec<horizontal_vector<int>>(__FILE__, true);
 
 	unsigned int numSafe = 0;
 	for (std::vector<int> levels : reports)
@@ -110,8 +110,8 @@ int Day2::Solution1()
 
 int Day2::Solution2ver1()
 {
-	std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputFileIntoVec<horizontal_vector<int>>(__FILE__);
-	//std::vector<horizontal_vector<int>> reports = FileUtil::ReadTestFileIntoVec<horizontal_vector<int>>(__FILE__);
+	std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputIntoVec<horizontal_vector<int>>(__FILE__);
+	//std::vector<horizontal_vector<int>> reports = FileUtil::ReadInputIntoVec<horizontal_vector<int>>(__FILE__, true);
 
 	Testing::DebugFile dbg(__FILE__);
 	dbg.OutputMatches<horizontal_vector<int>, bool>(reports, &IsSafe, false, true);
@@ -203,8 +203,8 @@ bool IsSafeDiffs(const std::vector<int>& diffs)
 
 int Day2::Solution2ver2()
 {
-	std::ifstream inFile = FileUtil::OpenInputFile(__FILE__);
-	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__);
+	std::ifstream inFile = FileUtil::OpenFile(__FILE__);
+	//std::ifstream inFile = FileUtil::OpenFile(__FILE__, true);
 
 	if (!inFile)
 	{
@@ -239,7 +239,7 @@ int Day2::Solution2ver2()
 			++numSafe;
 	}
 
-	//std::cout << numSafe;
+	std::cout << numSafe;
 
 	return 0;
 }
