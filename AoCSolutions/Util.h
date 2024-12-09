@@ -371,11 +371,18 @@ std::istream& operator>>(std::istream& stream, std::vector<T>& operand)
 }
 
 template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& stream, const std::pair<T1, T2>& operand)
+{
+	stream << operand.first << ": " << operand.second;
+	return stream;
+}
+
+template<typename T1, typename T2>
 std::ostream& operator<<(std::ostream& stream, const std::unordered_map<T1, T2>& operand)
 {
 	for (const auto& pair : operand)
 	{
-		stream << pair.first << ": " << pair.second;
+		stream << pair;
 	}
 	return stream;
 }
