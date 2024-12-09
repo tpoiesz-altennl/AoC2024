@@ -2,7 +2,7 @@
 #include "../Util.h"
 #include <vector>
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include <set>
 #include <list>
 
@@ -182,25 +182,7 @@ int Day5::Solution1ver1()
 	return 0;
 }
 
-std::map<int, std::set<int>> ConstructRulesetVer2(std::vector<horizontal_vector<int>> rules)
-{
-	std::map<int, std::set<int>> ruleset;
-	for (horizontal_vector<int> rule : rules)
-	{
-		if (auto it = ruleset.find(rule[0]); it != ruleset.end())
-		{
-			it->second.insert(rule[1]);
-		}
-		else
-		{
-			ruleset.emplace(std::make_pair(rule[0], std::set<int>({ rule[1] })));
-		}
-	}
-
-	return ruleset;
-}
-
-bool MatchToRulesetVer2(const horizontal_vector<int>& testCase, const std::map<int, std::set<int>>& ruleset)
+bool MatchToRulesetVer2(const horizontal_vector<int>& testCase, const std::unordered_map<int, horizontal_vector<int>>& ruleset)
 {
 	for (unsigned int i = 0; i < testCase.size(); ++i)
 	{
@@ -208,8 +190,8 @@ bool MatchToRulesetVer2(const horizontal_vector<int>& testCase, const std::map<i
 		{
 			if (const auto prereqsIt = ruleset.find(testCase[i]); prereqsIt != ruleset.end())
 			{
-				const std::set<int>& prereqs = prereqsIt->second;
-				if (prereqs.find(testCase[j]) != prereqs.end())
+				const horizontal_vector<int>& prereqs = prereqsIt->second;
+				if (std::find(prereqs.begin(), prereqs.end(), testCase[j]) != prereqs.end())
 					return false;
 			}
 		}
@@ -219,18 +201,13 @@ bool MatchToRulesetVer2(const horizontal_vector<int>& testCase, const std::map<i
 
 int Day5::Solution1ver2()
 {
-	//std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
-
 	std::vector<std::string> remainingLines;
-	std::vector<horizontal_vector<int>> rules = FileUtil::SplitInputLines<int>(input, '|', remainingLines);
+	std::unordered_map<int, horizontal_vector<int>> ruleset = FileUtil::ReadInputIntoLookupTable<int, int>(__FILE__, remainingLines, '|', true);
 	std::vector<horizontal_vector<int>> updates = FileUtil::SplitInputLines<int>(remainingLines, ',', remainingLines);
-
-	std::map<int, std::set<int>> ruleset = ConstructRulesetVer2(rules);
 
 	Testing::DebugFile dbg(__FILE__);
 	//dbg.OutputRule<horizontal_vector<int>>(ruleset);
-	dbg.OutputMatches<horizontal_vector<int>, std::map<int, std::set<int>>>(updates, &MatchToRulesetVer2, true, ruleset);
+	dbg.OutputMatches<horizontal_vector<int>, std::unordered_map<int, horizontal_vector<int>>>(updates, &MatchToRulesetVer2, true, ruleset);
 
 	int total = 0;
 	for (horizontal_vector<int> update : updates)
@@ -243,7 +220,8 @@ int Day5::Solution1ver2()
 	return 0;
 }
 
-bool MatchToRulesetVer3(const horizontal_vector<int>& testCase, const std::map<int, std::set<int>>& ruleset, int& conflict1, int& conflict2)
+bool MatchToRulesetVer3(const horizontal_vector<int>& testCase, const std::unordered_map<int, 
+	horizontal_vector<int>>& ruleset, int& conflict1, int& conflict2)
 {
 	for (unsigned int i = 0; i < testCase.size(); ++i)
 	{
@@ -251,8 +229,8 @@ bool MatchToRulesetVer3(const horizontal_vector<int>& testCase, const std::map<i
 		{
 			if (const auto prereqsIt = ruleset.find(testCase[i]); prereqsIt != ruleset.end())
 			{
-				const std::set<int>& prereqs = prereqsIt->second;
-				if (prereqs.find(testCase[j]) != prereqs.end())
+				const horizontal_vector<int>& prereqs = prereqsIt->second;
+				if (std::find(prereqs.begin(), prereqs.end(), testCase[j]) != prereqs.end())
 				{
 					conflict1 = j;
 					conflict2 = i;
@@ -266,17 +244,12 @@ bool MatchToRulesetVer3(const horizontal_vector<int>& testCase, const std::map<i
 
 int Day5::Solution2()
 {
-	//std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
-
 	std::vector<std::string> remainingLines;
-	std::vector<horizontal_vector<int>> rules = FileUtil::SplitInputLines<int>(input, '|', remainingLines);
+	std::unordered_map<int, horizontal_vector<int>> ruleset = FileUtil::ReadInputIntoLookupTable<int, int>(__FILE__, remainingLines, '|');
 	std::vector<horizontal_vector<int>> updates = FileUtil::SplitInputLines<int>(remainingLines, ',', remainingLines);
 
-	std::map<int, std::set<int>> ruleset = ConstructRulesetVer2(rules);
-
 	Testing::DebugFile dbg(__FILE__);
-	dbg.OutputMatches<horizontal_vector<int>, std::map<int, std::set<int>>>(updates, &MatchToRulesetVer2, false, ruleset);
+	dbg.OutputMatches<horizontal_vector<int>, std::unordered_map<int, horizontal_vector<int>>>(updates, &MatchToRulesetVer2, false, ruleset);
 
 	int total = 0;
 	for (horizontal_vector<int> update : updates)
