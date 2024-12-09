@@ -47,6 +47,76 @@ public:
 		return ret;
 	}
 
+	template <typename T1, typename T2>
+	static bool MakeMapEntryFromLine(const std::string& line, std::pair<T1, T2>& output, const char separator = NULL)
+	{
+		T1 tempKey;
+		T2 tempVal;
+		if (separator && !line.empty())
+		{
+			size_t sepPos = line.find(separator);
+			if (sepPos != std::string::npos)
+			{
+				std::stringstream ss(line.substr(0, sepPos));
+				ss >> tempKey;
+				std::stringstream ss2(line.substr(sepPos + 1, line.size() - sepPos));
+				ss2 >> tempVal;
+
+				output = std::make_pair(tempKey, tempVal);
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else if (!line.empty())
+		{
+			std::stringstream ss(line);
+			ss >> tempKey >> tempVal;
+			output = std::make_pair(tempKey, tempVal);
+		}
+		else
+			return false;
+
+		return true;
+	}
+
+	template <typename T1, typename T2>
+	static std::unordered_map<T1, horizontal_vector<T2>> ReadInputIntoLookupTable(std::string callingLocation,
+		std::vector<std::string>& incompatibleLines, char separator = NULL, bool isTestFile = false)
+	{
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
+		if (!file)
+		{
+			file.close();
+			return std::unordered_map<T1, horizontal_vector<T2>>();
+		}
+
+		std::unordered_map<T1, horizontal_vector<T2>> ret;
+
+		std::string line;
+		while (std::getline(file, line))
+		{
+			std::pair<T1, T2> entry;
+			if (MakeMapEntryFromLine(line, entry, separator))
+			{
+				if (auto it = ret.find(entry.first); it != ret.end())
+				{
+					(*it).second.push_back(entry.second);
+				}
+				else
+				{
+					horizontal_vector<T2> tempVec;
+					tempVec.push_back(entry.second);
+					ret.emplace(std::make_pair(entry.first, tempVec));
+				}
+			}
+			else
+				incompatibleLines.push_back(line);
+		}
+		return ret;
+	}
+
 	// WIP
 	/*template<typename T1, typename T2, typename ContainerType>
 	static std::unordered_map<T1, ContainerType> ReadInputIntoMap(std::string callingLocation, std::vector<std::string>& incompatibleLines,
