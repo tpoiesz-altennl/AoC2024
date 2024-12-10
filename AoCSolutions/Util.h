@@ -15,6 +15,7 @@ class horizontal_vector : public std::vector<T>
 	// This class needs no body; it only exists to differentiate vectors that need to be printed horizontally
 };
 
+#pragma region fileUtil
 class FileUtil
 {
 public:
@@ -244,7 +245,9 @@ public:
 		return ret;
 	}
 };
+#pragma endregion
 
+#pragma region debugUtil
 class Testing
 {
 public:
@@ -368,7 +371,9 @@ public:
 		std::cout << '\n' << avgDuration << '\n';
 	}
 };
+#pragma endregion
 
+#pragma region IOoperators
 template<typename T>
 std::ostream& operator<<(std::ostream& stream, const std::vector<T>& operand)
 {
@@ -421,3 +426,66 @@ std::ostream& operator<<(std::ostream& stream, horizontal_vector<T> operand)
 	}
 	return stream;
 }
+#pragma endregion
+
+#pragma region UsefulStructs
+enum class Direction : unsigned int
+{
+	None = 0,
+	UpLeft,
+	Up,
+	UpRight,
+	Left,
+	Right,
+	DownLeft,
+	Down,
+	DownRight
+};
+
+// Order: up-left, up, up-right, left, right, down-left, down, down-right, none
+Direction& operator++(Direction& dir);
+
+enum class OrthDirection : unsigned int
+{
+	None = 0,
+	Up,
+	Right,
+	Down,
+	Left
+};
+
+// Order: up, right, down, left, loops to up
+OrthDirection& operator++(OrthDirection& dir);
+OrthDirection& operator--(OrthDirection& dir);
+
+struct vec2
+{
+	int x, y;
+
+	vec2() : x(0), y(0)
+	{
+	}
+	vec2(int _x, int _y) : x(_x), y(_y)
+	{
+	}
+
+	vec2 operator+(const vec2& other)
+	{
+		return vec2(x + other.x, y + other.y);
+	}
+	vec2 operator-(const vec2& other)
+	{
+		return vec2(x - other.x, y - other.y);
+	}
+
+	vec2 operator*(int a)
+	{
+		return vec2(x * a, y * a);
+	}
+
+	unsigned int dist(const vec2& other)
+	{
+		return std::abs(other.x - x) + std::abs(other.y - y);
+	}
+};
+#pragma endregion
