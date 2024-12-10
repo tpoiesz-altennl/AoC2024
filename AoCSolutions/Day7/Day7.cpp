@@ -5,34 +5,30 @@
 #include <string>
 #include <queue>
 
-long long int mul(long long int a, int b)
+unsigned long long mul(unsigned long long a, unsigned int b)
 {
 	return a * b;
 }
 
-long long int add(long long int a, int b)
+unsigned long long add(unsigned long long a, unsigned int b)
 {
 	return a + b;
 }
 
-long long int subtract(long long int a, int b)
+unsigned long long ApplyOperators(horizontal_vector<int> values, 
+	const std::vector<std::function<unsigned long long(unsigned long long, unsigned int)>>& operators)
 {
-	return a - b;
-}
-
-long long int ApplyOperators(horizontal_vector<int> values, const std::vector<std::function<long long int(long long int, int)>>& operators)
-{
-	long long int total = values[0];
+	unsigned long long total = values[0];
 	for (unsigned int i = 1; i < values.size(); ++i)
 	{
-		total = operators[i - 1](total, values[i]);
+		total = operators[i - 1](total, static_cast<unsigned int>(values[i]));
 	}
 	return total;
 }
 
-bool Recurse(std::vector<std::function<long long int(long long int, int)>> operators, 
-	const std::vector<std::function<long long int(long long int, int)>>& possibleOperators,
-	const horizontal_vector<int>& values, const long long int targetVal, unsigned int m, int n)
+bool Recurse(std::vector<std::function<unsigned long long(unsigned long long, unsigned int)>> operators,
+	const std::vector<std::function<unsigned long long(unsigned long long, unsigned int)>>& possibleOperators,
+	const horizontal_vector<int>& values, const unsigned long long targetVal, unsigned int m, int n)
 {
 	if (n < 0)
 		return false;
@@ -49,10 +45,10 @@ bool Recurse(std::vector<std::function<long long int(long long int, int)>> opera
 }
 
 bool TryEverything(const std::pair<int, horizontal_vector<int>>& testCase,
-	const std::vector<std::function<long long int(long long int, int)>>& operators,
-	const std::vector<std::function<long long int(long long int, int)>>& possibleOperators)
+	const std::vector<std::function<unsigned long long(unsigned long long, unsigned int)>>& operators,
+	const std::vector<std::function<unsigned long long(unsigned long long, unsigned int)>>& possibleOperators)
 {
-	long long int resultVal = testCase.first;
+	unsigned long long resultVal = static_cast<unsigned long long>(testCase.first);
 	horizontal_vector<int> inputVals = testCase.second;
 
 	unsigned int m = static_cast<unsigned int>(possibleOperators.size()); // Range of for-loop of operators to try
@@ -67,16 +63,16 @@ int Day7::Solution1()
 		FileUtil::ReadInputIntoLookupTable<int, horizontal_vector<int>>(__FILE__, remainingLines, ':');
 	//std::unordered_map<int, horizontal_vector<horizontal_vector<int>>> testCases =
 	//	FileUtil::ReadInputIntoLookupTable<int, horizontal_vector<int>>(__FILE__, remainingLines, ':', true);
-	std::vector<std::function<long long int(long long int, int)>> possibleOperators{ &mul, &add, &subtract };
+	std::vector<std::function<unsigned long long(unsigned long long, unsigned int)>> possibleOperators{ &mul, &add };
 
-	long long int total = 0;
+	unsigned long long total = 0;
 	std::vector<std::pair<int, horizontal_vector<int>>> testCasesForDebug;
 	Testing::DebugFile dbg(__FILE__);
 	for (const auto& testCaseSet : testCases)
 	{
 		for (const horizontal_vector<int>& input : testCaseSet.second)
 		{
-			std::vector<std::function<long long int(long long int, int)>> operators;
+			std::vector<std::function<unsigned long long(unsigned long long, unsigned int)>> operators;
 			for (unsigned int i = 0; i < input.size() - 1; ++i) // We need one fewer operator than the number of numbers in input
 			{
 				// Build the operator set that yields the highest value
@@ -96,7 +92,7 @@ int Day7::Solution1()
 				}
 			}
 			// Optimisation: if applying the best set of operators yields too low a value, no operator modifications are going to get us there
-			long long int bestSet = ApplyOperators(input, operators);
+			unsigned long long bestSet = ApplyOperators(input, operators);
 			if (bestSet == testCaseSet.first)
 			{
 				total += testCaseSet.first;
