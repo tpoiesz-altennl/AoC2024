@@ -10,7 +10,10 @@
 #include <chrono>
 
 template<typename T>
-class horizontal_vector;
+class horizontal_vector : public std::vector<T>
+{
+	// This class needs no body; it only exists to differentiate vectors that need to be printed horizontally
+};
 
 class FileUtil
 {
@@ -114,6 +117,8 @@ public:
 			else
 				incompatibleLines.push_back(line);
 		}
+
+		file.close();
 		return ret;
 	}
 
@@ -216,6 +221,26 @@ public:
 				incompatibleLines.push_back(s);
 		}
 
+		return ret;
+	}
+
+	static horizontal_vector<int> ParseFileCharByChar(std::string callingLocation, bool isTestFile = false)
+	{
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
+		if (!file)
+		{
+			file.close();
+			return horizontal_vector<int>();
+		}
+
+		horizontal_vector<int> ret;
+		char c;
+		while (file >> c)
+		{
+			ret.push_back(c - '0');
+		}
+
+		file.close();
 		return ret;
 	}
 };
@@ -386,12 +411,6 @@ std::ostream& operator<<(std::ostream& stream, const std::unordered_map<T1, T2>&
 	}
 	return stream;
 }
-
-template<class T>
-class horizontal_vector : public std::vector<T>
-{
-	// This class needs no body; it only exists to differentiate vectors that need to be printed horizontally
-};
 
 template<typename T>
 std::ostream& operator<<(std::ostream& stream, horizontal_vector<T> operand)
