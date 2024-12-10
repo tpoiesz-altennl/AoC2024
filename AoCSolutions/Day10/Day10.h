@@ -1,7 +1,7 @@
 #pragma once
 #include "../Util.h"
 
-class Day8
+class Day10
 {
 public:
 	static int Solution1();
@@ -9,3 +9,4 @@ public:
 private:
 	static std::vector<vec2> GetCharCoordinates(const std::vector<std::string>& input, char val);
 };
+
