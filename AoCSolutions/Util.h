@@ -469,21 +469,26 @@ struct vec2
 	{
 	}
 
-	vec2 operator+(const vec2& other)
+	vec2 operator+(const vec2& other) const
 	{
 		return vec2(x + other.x, y + other.y);
 	}
-	vec2 operator-(const vec2& other)
+	vec2 operator-(const vec2& other) const
 	{
 		return vec2(x - other.x, y - other.y);
 	}
 
-	vec2 operator*(int a)
+	vec2 operator*(int a) const
 	{
 		return vec2(x * a, y * a);
 	}
 
-	unsigned int dist(const vec2& other)
+	bool operator==(const vec2& other) const
+	{
+		return other.x == x && other.y == y;
+	}
+
+	unsigned int dist(const vec2& other) const
 	{
 		return std::abs(other.x - x) + std::abs(other.y - y);
 	}

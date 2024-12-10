@@ -22,7 +22,7 @@ char FindNewChar(const std::vector<std::string>& input, std::string& triedChars)
 }
 
 // returns coordinate pairs as (x,y)
-std::vector<vec2> GetCharCoordinates(const std::vector<std::string>& input, char val)
+std::vector<vec2> Day8::GetCharCoordinates(const std::vector<std::string>& input, char val)
 {
 	std::vector<vec2> ret;
 	for (unsigned int i = 0; i < input.size(); ++i)
