@@ -149,7 +149,7 @@ int Day10::Solution1()
 	}
 
 	std::vector<vec2> zeroes = GetCharCoordinates(grid, '0');
-
+	
 	int totalPaths = 0;
 	for (const vec2& zero : zeroes)
 	{

@@ -7,8 +7,7 @@
 
 char FindNewChar(const std::vector<std::string>& input, std::string& triedChars)
 {
-	std::string str = "(?![" + triedChars + "])[a-z]|(?![" + triedChars + "])[A-Z]|(?![" + triedChars + "])[0-9]";
-	std::regex reg(str);
+	std::regex reg("(?![" + triedChars + "])[\\w]");
 	for (const std::string& line : input)
 	{
 		std::smatch m;
