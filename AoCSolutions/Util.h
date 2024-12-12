@@ -429,6 +429,8 @@ std::ostream& operator<<(std::ostream& stream, horizontal_vector<T> operand)
 #pragma endregion
 
 #pragma region UsefulStructs
+using u64 = unsigned long long;
+
 enum class Direction : unsigned int
 {
 	None = 0,
@@ -491,6 +493,44 @@ struct vec2
 	unsigned int dist(const vec2& other) const
 	{
 		return std::abs(other.x - x) + std::abs(other.y - y);
+	}
+};
+
+struct Grid
+{
+	std::vector<std::string> grid;
+
+	Grid(const std::vector<std::string>& input) : grid(input)
+	{ }
+
+	char& operator[](const vec2& index)
+	{
+		return grid[index.y][index.x];
+	}
+
+	std::string& operator[](const int y)
+	{
+		return grid[y];
+	}
+
+	char at(const vec2& index) const
+	{
+		return grid[index.y][index.x];
+	}
+
+	char at(const int x, const int y) const
+	{
+		return grid[y][x];
+	}
+
+	const std::string& at(const int y) const
+	{
+		return grid[y];
+	}
+
+	size_t size() const
+	{
+		return grid.size();
 	}
 };
 #pragma endregion
