@@ -460,6 +460,43 @@ enum class OrthDirection : unsigned int
 OrthDirection& operator++(OrthDirection& dir);
 OrthDirection& operator--(OrthDirection& dir);
 
+template<typename T>
+struct vec2T
+{
+	T x, y;
+
+	vec2T() : x(0), y(0)
+	{
+	}
+	vec2T(T _x, T _y) : x(_x), y(_y)
+	{
+	}
+
+	vec2T operator+(const vec2T& other) const
+	{
+		return vec2T(x + other.x, y + other.y);
+	}
+	vec2T operator-(const vec2T& other) const
+	{
+		return vec2T(x - other.x, y - other.y);
+	}
+
+	vec2T operator*(int a) const
+	{
+		return vec2T(x * a, y * a);
+	}
+
+	bool operator==(const vec2T& other) const
+	{
+		return other.x == x && other.y == y;
+	}
+
+	unsigned int dist(const vec2T& other) const
+	{
+		return std::abs(other.x - x) + std::abs(other.y - y);
+	}
+};
+
 struct vec2
 {
 	int x, y;
