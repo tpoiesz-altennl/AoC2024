@@ -10,13 +10,15 @@
 #include "Day8/Day8.h"
 #include "Day9/Day9.h"
 #include "Day10/Day10.h"
+#include "Day11/Day11.h"
+#include "Day12/Day12.h"
 #include "Util.h"
 
 #include <chrono>
 
 int main()
 {
-    unsigned long long iter = 10;
-    int exitCode = Day10::Solution2();
-    return exitCode;
+    u64 iter = 1000;
+    return Day12::Solution2();
+    return 0;
 }
