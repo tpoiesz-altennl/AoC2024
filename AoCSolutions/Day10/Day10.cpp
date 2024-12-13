@@ -98,8 +98,8 @@ int FindPath(const std::vector<std::string>& grid, const vec2& currCoord, char s
 					if (int numPaths = FindPath(grid, nextCoord, searchVal + 1, newIncoming, 
 						remainingSteps - 1, foundNines, considerDuplicates, dbg))
 					{
-						if (dbg)
-							; // Do some cool output magic
+						/*if (dbg)
+							; // Do some cool output magic*/
 						totalPaths += numPaths;
 					}
 				}
@@ -120,8 +120,8 @@ int FindPath(const std::vector<std::string>& grid, const vec2& currCoord, char s
 					if (int numPaths = FindPath(grid, nextCoord, searchVal + 1, newIncoming, 
 						remainingSteps - 1, foundNines, considerDuplicates, dbg))
 					{
-						if (dbg)
-							; // Do some cool output magic
+						/*if (dbg)
+							; // Do some cool output magic*/
 						totalPaths += numPaths;
 					}
 				}
@@ -149,7 +149,7 @@ int Day10::Solution1()
 	}
 
 	std::vector<vec2> zeroes = GetCharCoordinates(grid, '0');
-
+	
 	int totalPaths = 0;
 	for (const vec2& zero : zeroes)
 	{
