@@ -459,6 +459,10 @@ enum class OrthDirection : unsigned int
 // Order: up, right, down, left, loops to up
 OrthDirection& operator++(OrthDirection& dir);
 OrthDirection& operator--(OrthDirection& dir);
+OrthDirection operator+(OrthDirection dir, int add);
+OrthDirection operator-(OrthDirection dir, int subtract);
+
+OrthDirection GetOppositeDir(OrthDirection dir);
 
 template<typename T>
 struct vec2T
@@ -527,6 +531,16 @@ struct vec2
 		return other.x == x && other.y == y;
 	}
 
+	bool operator<(const vec2& other) const
+	{
+		return y < other.y || (y == other.y && x < other.x);
+	}
+
+	bool lessByX(const vec2& other) const
+	{
+		return x < other.x || (x == other.x && y < other.y);
+	}
+
 	unsigned int dist(const vec2& other) const
 	{
 		return std::abs(other.x - x) + std::abs(other.y - y);
@@ -538,6 +552,9 @@ struct Grid
 	std::vector<std::string> grid;
 
 	Grid(const std::vector<std::string>& input) : grid(input)
+	{ }
+
+	Grid(const Grid& other) : grid(other.grid)
 	{ }
 
 	char& operator[](const vec2& index)
@@ -569,5 +586,27 @@ struct Grid
 	{
 		return grid.size();
 	}
+
+	bool IsValidPos(const vec2& pos) const
+	{
+		return pos.y >= 0 && pos.y < size() && pos.x >= 0 && pos.x < grid[0].size();
+	}
+
+	vec2 FindChar(const char c) const
+	{
+		for (unsigned int y = 0; y < size(); ++y)
+		{
+			for (unsigned int x = 0; x < at(y).size(); ++x)
+			{
+				vec2 pos(x, y);
+				if (at(pos) == c)
+					return pos;
+			}
+		}
+		return vec2(-1, -1);
+	}
 };
+
+vec2 NextPos(const vec2& currPos, OrthDirection dir);
+vec2 NextPos(const vec2& currPos, Direction dir);
 #pragma endregion

@@ -103,3 +103,91 @@ OrthDirection& operator--(OrthDirection& dir)
 	}
 	}
 }
+
+OrthDirection operator+(OrthDirection dir, int add)
+{
+	add %= 4;
+	if (add < 0)
+		add += 4;
+
+	switch (add)
+	{
+	case 0:
+		return dir;
+	case 1:
+		++dir;
+		return dir;
+	case 2:
+		return GetOppositeDir(dir);
+	case 3:
+		--dir;
+		return dir;
+	default:
+		return OrthDirection::None;
+	}
+}
+
+OrthDirection operator-(OrthDirection dir, int subtract)
+{
+	subtract = 4 - subtract;
+	return dir + subtract;
+}
+
+OrthDirection GetOppositeDir(OrthDirection dir)
+{
+	switch (dir)
+	{
+	case OrthDirection::Up:
+		return OrthDirection::Down;
+	case OrthDirection::Right:
+		return OrthDirection::Left;
+	case OrthDirection::Down:
+		return OrthDirection::Up;
+	case OrthDirection::Left:
+		return OrthDirection::Right;
+	default:
+		return OrthDirection::None;
+	}
+}
+
+vec2 NextPos(const vec2& currPos, OrthDirection dir)
+{
+	switch (dir)
+	{
+	case OrthDirection::Up:
+		return vec2(currPos.x, currPos.y - 1);
+	case OrthDirection::Right:
+		return vec2(currPos.x + 1, currPos.y);
+	case OrthDirection::Down:
+		return vec2(currPos.x, currPos.y + 1);
+	case OrthDirection::Left:
+		return vec2(currPos.x - 1, currPos.y);
+	default:
+		return vec2(-1, -1);
+	}
+}
+
+vec2 NextPos(const vec2& currPos, Direction dir)
+{
+	switch (dir)
+	{
+	case Direction::UpLeft:
+		return vec2(currPos.x - 1, currPos.y - 1);
+	case Direction::Up:
+		return vec2(currPos.x, currPos.y - 1);
+	case Direction::UpRight:
+		return vec2(currPos.x + 1, currPos.y - 1);
+	case Direction::Left:
+		return vec2(currPos.x - 1, currPos.y);
+	case Direction::Right:
+		return vec2(currPos.x + 1, currPos.y);
+	case Direction::DownLeft:
+		return vec2(currPos.x - 1, currPos.y + 1);
+	case Direction::Down:
+		return vec2(currPos.x, currPos.y + 1);
+	case Direction::DownRight:
+		return vec2(currPos.x + 1, currPos.y + 1);
+	default:
+		return vec2(-1, -1);
+	}
+}
