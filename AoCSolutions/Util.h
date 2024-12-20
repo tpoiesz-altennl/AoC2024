@@ -8,12 +8,59 @@
 #include <unordered_map>
 #include <functional>
 #include <chrono>
+#include <deque>
 
+#pragma region containers
 template<typename T>
 class horizontal_vector : public std::vector<T>
 {
 	// This class needs no body; it only exists to differentiate vectors that need to be printed horizontally
 };
+
+template <typename T>
+struct priority_queue
+{
+	priority_queue(std::function<bool(const T& a, const T& b)> comp)
+		: Queue(std::deque<T>()), Comparator(comp)
+	{
+	}
+
+	std::deque<T> Queue;
+	std::function<bool(const T& a, const T& b)> Comparator;
+
+	auto insert(T element)
+	{
+		auto it = Queue.begin();
+		while (it != Queue.end() && Comparator(*it, element))
+		{
+			++it;
+		}
+		return Queue.insert(it, element);
+	}
+
+	auto insert(T element, std::function<bool(const T& a, const T& b)> comp)
+	{
+		auto it = Queue.begin();
+		while (it != Queue.end() && comp(*it, element))
+		{
+			++it;
+		}
+		return Queue.insert(it, element);
+	}
+
+	T& operator[](unsigned int index) { return Queue[index]; }
+	const T& front() const { return Queue.front(); }
+	const T& back() const { return Queue.back(); }
+	void push_back(const T& val) { Queue.push_back(val); }
+	void push_front(const T& val) { Queue.push_front(val); }
+	void pop_front() { Queue.pop_front(); }
+	void pop_back() { Queue.pop_back(); }
+	auto erase(unsigned int where) { return Queue.erase(Queue.begin() + where); }
+	bool empty() { return Queue.empty(); }
+	auto begin() { return Queue.begin(); }
+	auto end() { return Queue.end(); }
+};
+#pragma endregion
 
 #pragma region fileUtil
 class FileUtil
@@ -428,7 +475,7 @@ std::ostream& operator<<(std::ostream& stream, horizontal_vector<T> operand)
 }
 #pragma endregion
 
-#pragma region UsefulStructs
+#pragma region usefulStructs
 using u64 = unsigned long long;
 
 enum class Direction : unsigned int
@@ -495,6 +542,11 @@ struct vec2T
 		return other.x == x && other.y == y;
 	}
 
+	bool operator!=(const vec2T& other) const
+	{
+		return !(other == *this);
+	}
+
 	unsigned int dist(const vec2T& other) const
 	{
 		return std::abs(other.x - x) + std::abs(other.y - y);
@@ -529,6 +581,11 @@ struct vec2
 	bool operator==(const vec2& other) const
 	{
 		return other.x == x && other.y == y;
+	}
+
+	bool operator!=(const vec2& other) const
+	{
+		return !(other == *this);
 	}
 
 	bool operator<(const vec2& other) const
