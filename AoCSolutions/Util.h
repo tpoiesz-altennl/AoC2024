@@ -20,10 +20,13 @@ class horizontal_vector : public std::vector<T>
 template <typename T>
 struct priority_queue
 {
+	priority_queue()
+		: Queue(std::deque<T>()), Comparator([](const T& a, const T& b) { return a < b; })
+	{ }
+
 	priority_queue(std::function<bool(const T& a, const T& b)> comp)
 		: Queue(std::deque<T>()), Comparator(comp)
-	{
-	}
+	{ }
 
 	std::deque<T> Queue;
 	std::function<bool(const T& a, const T& b)> Comparator;
@@ -59,6 +62,8 @@ struct priority_queue
 	bool empty() { return Queue.empty(); }
 	auto begin() { return Queue.begin(); }
 	auto end() { return Queue.end(); }
+	auto cbegin() const { return Queue.cbegin(); }
+	auto cend() const { return Queue.cend(); }
 };
 #pragma endregion
 

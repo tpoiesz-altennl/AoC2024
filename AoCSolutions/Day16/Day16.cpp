@@ -27,7 +27,7 @@ void BruteForce(Grid& grid, vec2 currPos, OrthDirection incomingDir,
 	}
 
 	// Mark position as visited
-	grid[currPos] = 'X';
+	grid[currPos] = 'O';
 	currentPathScore += 1;
 	OrthDirection nextDir = GetOppositeDir(incomingDir);
 	++nextDir;
@@ -118,7 +118,7 @@ bool PathFindToNode(const Grid& grid, const MazeNode& start, MazeNode& found)
 	for (OrthDirection checkDir = start.IncomingDir + 1; checkDir != start.IncomingDir; ++checkDir)
 	{
 		vec2 checkPos = NextPos(start.Pos, checkDir);
-		if (grid.IsValidPos(checkPos) && (grid.at(checkPos) == '.' || grid.at(checkPos) == 'X' || grid.at(checkPos) == 'E'))
+		if (grid.IsValidPos(checkPos) && (grid.at(checkPos) == '.' || grid.at(checkPos) == 'O' || grid.at(checkPos) == 'E'))
 		{
 			numBranches += 1;
 			// This will be relevant if there's only one path onward
@@ -244,7 +244,7 @@ struct MazeNode2 : public MazeNode
 	{ }
 };
 
-unsigned int Heuristic(const vec2& from, OrthDirection incomingDir, const vec2& to)
+unsigned int Heuristic(const Grid& grid, const vec2& from, const OrthDirection incomingDir, const vec2& to)
 {
 	unsigned int xDiff = std::abs(to.x - from.x), yDiff = std::abs(to.y - from.y);
 	unsigned int cost = xDiff + yDiff;
@@ -252,28 +252,30 @@ unsigned int Heuristic(const vec2& from, OrthDirection incomingDir, const vec2& 
 		return cost;
 	else if (xDiff == 0) // Vertically aligned positions
 	{
-		OrthDirection dirToDestination = to.y - from.y > 0 ? OrthDirection::Down : OrthDirection::Up;
-		if (dirToDestination == incomingDir)
+		const OrthDirection dirToDestination = to.y - from.y > 0 ? OrthDirection::Down : OrthDirection::Up;
+		if (incomingDir == dirToDestination)
 			cost += 2000; // Would need to do a 180 degree turn
-		else if (dirToDestination == OrthDirection::Left || dirToDestination == OrthDirection::Right)
+		else if (incomingDir == OrthDirection::Left || incomingDir == OrthDirection::Right)
 			cost += 1000; // Path involves 90 degree turn
 	}
 	else if (yDiff == 0) // Horizonally aligned positions
 	{
-		OrthDirection dirToDestination = to.x - from.x > 0 ? OrthDirection::Right : OrthDirection::Left;
-		if (dirToDestination == incomingDir)
+		const OrthDirection dirToDestination = to.x - from.x > 0 ? OrthDirection::Right : OrthDirection::Left;
+		if (incomingDir == dirToDestination)
 			cost += 2000; // Would need to do a 180 degree turn
-		else if (dirToDestination == OrthDirection::Up || dirToDestination == OrthDirection::Down)
+		else if (incomingDir == OrthDirection::Up || incomingDir == OrthDirection::Down)
 			cost += 1000; // Path involves 90 degree turn
 	}
 	else
 	{
-		OrthDirection verticalDirToDestination = to.y - from.y > 0 ? OrthDirection::Down : OrthDirection::Up;
-		OrthDirection horizontalDirToDestination = to.x - from.x > 0 ? OrthDirection::Right : OrthDirection::Left;
-		if (verticalDirToDestination == incomingDir || horizontalDirToDestination == incomingDir)
-			cost += 2000;
+		const OrthDirection verticalDirToDestination = to.y - from.y > 0 ? OrthDirection::Down : OrthDirection::Up;
+		const OrthDirection horizontalDirToDestination = to.x - from.x > 0 ? OrthDirection::Right : OrthDirection::Left;
+		if (incomingDir == verticalDirToDestination || incomingDir == horizontalDirToDestination)
+			cost += 2000; // Would need to do two 90 degree turns
+		else if (grid.at(NextPos(from, GetOppositeDir(incomingDir))) == '#')
+			cost += 2000; // Would need to turn away from a wall and then one more 90 degree turn later on
 		else
-			cost += 1000;
+			cost += 1000; // Path involves 90 degree turn
 	}
 	return cost;
 }
@@ -293,7 +295,7 @@ bool AStarExpansion(const Grid& grid, priority_queue<MazeNode2>& frontierNodes,
 	for (auto& node : nextNodes)
 	{
 		node.CostToReach += frontierNode.CostToReach;
-		MazeNode2 node2 = MazeNode2(node, Heuristic(node.Pos, node.IncomingDir, endPos) + node.CostToReach);
+		MazeNode2 node2 = MazeNode2(node, Heuristic(grid, node.Pos, node.IncomingDir, endPos) + node.CostToReach);
 		auto it = std::find_if(nodes.begin(), nodes.end(), [&node2](const MazeNode2& n) {
 			return node2.Pos == n.Pos;
 			});
@@ -322,13 +324,13 @@ bool AStarExpansion(const Grid& grid, priority_queue<MazeNode2>& frontierNodes,
 
 int Day16::Solution1ver3()
 {
-	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
-	//Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__, true));
+	//Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
+	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__, true));
 	vec2 startPos = grid.FindChar('S');
 	vec2 endPos = grid.FindChar('E');
 	if (!(grid.IsValidPos(startPos) && grid.IsValidPos(endPos)))
 		return 1;
-	std::vector<MazeNode2> nodes({ MazeNode2(startPos, OrthDirection::Left, 0, Heuristic(startPos, OrthDirection::Left, endPos)) });
+	std::vector<MazeNode2> nodes({ MazeNode2(startPos, OrthDirection::Left, 0, Heuristic(grid, startPos, OrthDirection::Left, endPos)) });
 	priority_queue<MazeNode2> frontierNodes([](const MazeNode2& a, const MazeNode2& b) { return a.EstimatedTotalCost < b.EstimatedTotalCost;});
 	frontierNodes.push_back(nodes.back());
 
@@ -359,12 +361,53 @@ struct MazeNode3 : public MazeNode2
 	MazeNode3(vec2 pos, OrthDirection dir, unsigned int cost, unsigned int costPlusHeuristic, std::shared_ptr<MazeNode3> link)
 		: MazeNode2(pos, dir, cost, costPlusHeuristic), PreviousNode(link)
 	{ }
+
+	MazeNode3(const MazeNode3& other)
+	{
+		Pos = other.Pos;
+		IncomingDir = other.IncomingDir;
+		CostToReach = other.CostToReach;
+		EstimatedTotalCost = other.EstimatedTotalCost;
+		PreviousNode = other.PreviousNode;
+	}
+
+	MazeNode3& operator=(MazeNode3& other)
+	{
+		Pos = other.Pos;
+		IncomingDir = other.IncomingDir;
+		CostToReach = other.CostToReach;
+		EstimatedTotalCost = other.EstimatedTotalCost;
+		PreviousNode = other.PreviousNode;
+		return *this;
+	}
+
+	MazeNode3(MazeNode3&& other) noexcept
+	{
+		Pos = std::move(other.Pos);
+		IncomingDir = std::move(other.IncomingDir);
+		CostToReach = std::move(other.CostToReach);
+		EstimatedTotalCost = std::move(other.EstimatedTotalCost);
+		PreviousNode = std::move(other.PreviousNode);
+	}
+
+	MazeNode3& operator=(MazeNode3&& other) noexcept
+	{
+		Pos = std::move(other.Pos);
+		IncomingDir = std::move(other.IncomingDir);
+		CostToReach = std::move(other.CostToReach);
+		EstimatedTotalCost = std::move(other.EstimatedTotalCost);
+		PreviousNode = std::move(other.PreviousNode);
+		return *this;
+	}
 };
 
-bool AStarWithMultipleBests(const Grid& grid, priority_queue<MazeNode3>& frontierNodes,
-	std::vector<MazeNode3>& nodes, const vec2& endPos)
+static constexpr unsigned int c_MaxNodes = 141 * 141;
+static std::vector<std::shared_ptr<MazeNode3>> g_Nodes(c_MaxNodes);
+static unsigned int g_BackIndex = 0;
+
+bool AStarWithMultipleBests(const Grid& grid, priority_queue<std::shared_ptr<MazeNode3>>& frontierNodes, const vec2& endPos)
 {
-	MazeNode3 frontierNode = frontierNodes.front();
+	MazeNode3 frontierNode = *(frontierNodes.front());
 	if (frontierNode.Pos == endPos)
 	{
 		// Found a best path
@@ -376,153 +419,131 @@ bool AStarWithMultipleBests(const Grid& grid, priority_queue<MazeNode3>& frontie
 	for (auto& node : nextNodes)
 	{
 		node.CostToReach += frontierNode.CostToReach;
-		auto prevNode = std::find_if(nodes.begin(), nodes.end(), [&frontierNode](const MazeNode3& n) {
-			return frontierNode.Pos == n.Pos;
-			});
-		MazeNode3& prevNodeRef = *prevNode;
-		auto prevNodePtr = std::shared_ptr<MazeNode3>(&prevNodeRef);
 		MazeNode3 node3(node.Pos, node.IncomingDir, node.CostToReach, 
-			Heuristic(node.Pos, node.IncomingDir, endPos) + node.CostToReach, prevNodePtr);
+			Heuristic(grid, node.Pos, node.IncomingDir, endPos) + node.CostToReach, std::make_shared<MazeNode3>(frontierNode));
+		std::shared_ptr<MazeNode3> nodePtr = std::make_shared<MazeNode3>(node3);
 
-		auto it = std::find_if(nodes.begin(), nodes.end(), [&node3](const MazeNode3& n) {
-			return node3.Pos == n.Pos;
+		auto it = std::find_if(g_Nodes.begin(), g_Nodes.begin() + g_BackIndex + 1, [&node3](const std::shared_ptr<MazeNode3>& n) {
+			return node3.Pos == n->Pos;
 			});
 
-		if (it == nodes.end())
+		if (it == g_Nodes.begin() + g_BackIndex + 1)
 		{
-			frontierNodes.insert(node3);
-			nodes.push_back(node3);
+			g_Nodes[++g_BackIndex] = nodePtr;
+			frontierNodes.insert(nodePtr);
 		}
-		else if (it->CostToReach > node3.CostToReach)
+		else if ((node3.CostToReach <= (*it)->CostToReach + 1000) &&
+			(node3.EstimatedTotalCost <= (*it)->EstimatedTotalCost + 1000))
 		{
-			*it = node3;
-			auto frontierIt = std::find_if(frontierNodes.begin(), frontierNodes.end(), [&node3](const MazeNode3& n) {
-				return node3.Pos == n.Pos;
-				});
-			if (frontierIt != frontierNodes.end())
-				*frontierIt = node3;
-			else
-				frontierNodes.insert(node3);
+			*it = nodePtr;
+			frontierNodes.insert(nodePtr);
 		}
-		else if (it->CostToReach == node3.CostToReach)
+		else if (node3.EstimatedTotalCost == (*it)->EstimatedTotalCost || node3.EstimatedTotalCost == (*it)->EstimatedTotalCost + 1000 ||
+			node3.CostToReach == (*it)->CostToReach || node3.CostToReach == (*it)->CostToReach + 1000)
 		{
-			frontierNodes.insert(node3, [](const MazeNode3& a, const MazeNode3& b) {
-				return a.EstimatedTotalCost <= b.EstimatedTotalCost;
-				});
+			frontierNodes.insert(nodePtr);
 		}
 	}
 	return false;
 }
 
-bool PathFindNodeToNode(const Grid& grid, const MazeNode& from, const MazeNode& to, unsigned int maxCost, unsigned int currCost,
+bool PathFindNodeToNode(const Grid& grid, const vec2& from, const vec2& to, unsigned int maxCost, unsigned int currCost, OrthDirection incomingDir,
 	std::vector<vec2>& pathPositions)
 {
-	if (grid.at(from.Pos) == '#')
+	if (grid.at(from) == '#')
 		return false;
 	else if (currCost > maxCost)
 		return false;
-	else if (from.Pos == to.Pos)
+	else if (from == to)
 	{
-		pathPositions.push_back(from.Pos);
+		pathPositions.push_back(from);
 		return true;
 	}
 
 	currCost += 1;
-	for (OrthDirection dir = from.IncomingDir + 1; dir != from.IncomingDir; ++dir)
+	for (OrthDirection dir = incomingDir + 1; dir != incomingDir; ++dir)
 	{
-		MazeNode next(NextPos(from.Pos, dir), GetOppositeDir(dir), 0);
-		if (next.IncomingDir != from.IncomingDir)
+		vec2 nextPos = NextPos(from, dir);
+		OrthDirection nextDir = GetOppositeDir(dir);
+		if (nextDir != incomingDir)
 			currCost += 1000;
-		if (PathFindNodeToNode(grid, next, to, maxCost, currCost, pathPositions))
+		if (PathFindNodeToNode(grid, nextPos, to, maxCost, currCost, nextDir, pathPositions))
 		{
-			pathPositions.push_back(from.Pos);
+			pathPositions.push_back(from);
 			return true;
 		}
-		if (next.IncomingDir != from.IncomingDir)
+		if (nextDir != incomingDir)
 			currCost -= 1000;
 	}
 
 	return false;
 }
 
-void DrawPath(Grid& grid, std::deque<MazeNode3>& path, priority_queue<MazeNode3>& remainingFrontiers, Testing::DebugFile* dbg = nullptr)
+void DrawPath(Grid& grid, std::vector<MazeNode3>& path, const priority_queue<std::shared_ptr<MazeNode3>>& remainingFrontiers, 
+	Testing::DebugFile* dbg = nullptr)
 {
 	if (path.size() < 2)
 		return;
 
-	std::vector<std::deque<MazeNode3>> equivalentPaths;
 	auto from = path.begin(), to = from + 1;
 	while (to != path.end())
 	{
-		auto frontierIt = std::find_if(remainingFrontiers.begin(), remainingFrontiers.end(), [&to](const MazeNode3& n) {
-			return to->Pos == n.Pos /*&& to->CostToReach == n.CostToReach*/;
-			});
-		if (frontierIt != remainingFrontiers.end())
-		{
-			MazeNode3 node = *frontierIt;
-			std::deque<MazeNode3> path({ node });
-			while (node.PreviousNode != nullptr)
-			{
-				node = *(node.PreviousNode);
-				path.push_front(node);
-			}
-			equivalentPaths.push_back(path);
-		}
-		std::vector<vec2> pathTiles;
-		PathFindNodeToNode(grid, *from, *to, to->CostToReach - from->CostToReach, 0, pathTiles);
+		std::vector<vec2> pathTiles{ from->Pos };
+		PathFindNodeToNode(grid, NextPos(from->Pos, from->IncomingDir), to->Pos, to->CostToReach - from->CostToReach, 0, 
+			GetOppositeDir(from->IncomingDir), pathTiles);
 		for (const vec2& tile : pathTiles)
-			grid[tile] = 'X';
+			if (grid.at(tile) != 'E')
+				grid[tile] = 'O';
 		++from, ++to;
-	}
-	
-	for (std::deque<MazeNode3> path : equivalentPaths)
-	{
-		auto from = path.begin(), to = from + 1;
-		while (to != path.end())
-		{
-			std::vector<vec2> pathTiles;
-			PathFindNodeToNode(grid, *from, *to, to->CostToReach - from->CostToReach, 0, pathTiles);
-			for (const vec2& tile : pathTiles)
-				grid[tile] = 'X';
-			++from, ++to;
-		}
 	}
 
 	if (dbg)
 		dbg->OutputResultGrid(grid.grid);
 }
 
-static constexpr unsigned int c_MaxNodes = 141 * 141;
-static std::vector<MazeNode3> g_Nodes(c_MaxNodes, MazeNode3());
-static unsigned int g_BackIndex = 0;
-
 int Day16::Solution2()
 {
-	//Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
-	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__, true));
+	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
+	//Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__, true));
 	vec2 startPos = grid.FindChar('S');
 	vec2 endPos = grid.FindChar('E');
 	if (!(grid.IsValidPos(startPos) && grid.IsValidPos(endPos)))
 		return 1;
-	std::vector<MazeNode3> nodes({ MazeNode3(startPos, OrthDirection::Left, 0, Heuristic(startPos, OrthDirection::Left, endPos)) });
-	priority_queue<MazeNode3> frontierNodes([](const MazeNode2& a, const MazeNode2& b) { return a.EstimatedTotalCost <= b.EstimatedTotalCost; });
-	frontierNodes.push_back(nodes.back());
+	g_Nodes[g_BackIndex] = std::make_shared<MazeNode3>(startPos, OrthDirection::Left, 0, Heuristic(grid, startPos, OrthDirection::Left, endPos));
+	priority_queue<std::shared_ptr<MazeNode3>> frontierNodes(
+		[](const std::shared_ptr<MazeNode3>& a, const std::shared_ptr<MazeNode3>& b) { return a->EstimatedTotalCost <= b->EstimatedTotalCost; }
+		);
+	frontierNodes.push_back(g_Nodes[g_BackIndex]);
 
 	bool foundPath = false;
-	while (!frontierNodes.empty() && !foundPath)
+	while (!frontierNodes.empty())
 	{
-		if (AStarWithMultipleBests(grid, frontierNodes, nodes, endPos))
+		if (AStarWithMultipleBests(grid, frontierNodes, endPos))
 		{
-			MazeNode3 node = frontierNodes.front();
-			std::deque<MazeNode3> path({ node });
-			while (node.PreviousNode != nullptr)
-			{
-				node = *(node.PreviousNode);
-				path.push_front(node);
-			}
+			unsigned int lowestCost = frontierNodes.front()->CostToReach;
 			Testing::DebugFile dbg(__FILE__);
-			DrawPath(grid, path, frontierNodes, &dbg);
-			foundPath = true;
+			do
+			{
+				// Build & draw path
+				MazeNode3 frontier = *(frontierNodes.front());
+				frontierNodes.pop_front();
+				std::vector<MazeNode3> path({ frontier });
+				while (frontier.PreviousNode != nullptr)
+				{
+					frontier = *(frontier.PreviousNode);
+					path.push_back(frontier);
+				}
+				dbg.Overwrite();
+				DrawPath(grid, path, frontierNodes, &dbg);
+
+				// Prepare the next path to draw
+				while (!frontierNodes.empty() && frontierNodes.front()->EstimatedTotalCost == lowestCost)
+				{
+					if (AStarWithMultipleBests(grid, frontierNodes, endPos))
+						break;
+				}
+			} while (!frontierNodes.empty() && frontierNodes.front()->EstimatedTotalCost == lowestCost);
+			break;
 		}
 	}
 
@@ -531,7 +552,7 @@ int Day16::Solution2()
 	{
 		for (unsigned int x = 1; x < grid[y].size() - 1; ++x)
 		{
-			if (grid.at(x, y) == 'X' || grid.at(x, y) == 'S' || grid.at(x, y) == 'E')
+			if (grid.at(x, y) == 'O' || grid.at(x, y) == 'S' || grid.at(x, y) == 'E')
 				totalTiles += 1;
 		}
 	}
