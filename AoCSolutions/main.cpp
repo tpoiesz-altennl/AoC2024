@@ -23,8 +23,8 @@
 int main()
 {
     u64 iter = 1000;
-    Testing::TimeSolution(&Day16::Solution1ver2, iter);
-    Testing::TimeSolution(&Day16::Solution1ver3, iter);
-    //return Day16::Solution1ver3();
+    //Testing::TimeSolution(&Day16::Solution1ver2, iter);
+    //Testing::TimeSolution(&Day16::Solution1ver3, iter);
+    return Day16::Solution2();
     return 0;
 }
