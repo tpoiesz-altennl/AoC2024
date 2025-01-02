@@ -609,6 +609,25 @@ struct vec2
 	}
 };
 
+std::istream& operator>>(std::istream& stream, vec2& operand);
+std::ostream& operator<<(std::ostream& stream, vec2& operand);
+
+template<typename T>
+std::istream& operator>>(std::istream& stream, vec2T<T>& operand)
+{
+	char separator;
+	stream >> operand.x >> separator >> operand.y;
+	return stream;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& stream, vec2T<T>& operand)
+{
+	char separator = ',';
+	stream << operand.x << separator << operand.y;
+	return stream;
+}
+
 struct Grid
 {
 	std::vector<std::string> grid;
