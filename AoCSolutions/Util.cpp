@@ -150,6 +150,20 @@ OrthDirection GetOppositeDir(OrthDirection dir)
 	}
 }
 
+std::istream& operator>>(std::istream& stream, vec2& operand)
+{
+	char separator;
+	stream >> operand.x >> separator >> operand.y;
+	return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, vec2& operand)
+{
+	char separator = ',';
+	stream << operand.x << separator << operand.y;
+	return stream;
+}
+
 vec2 NextPos(const vec2& currPos, OrthDirection dir)
 {
 	switch (dir)
