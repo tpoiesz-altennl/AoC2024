@@ -513,6 +513,8 @@ OrthDirection& operator++(OrthDirection& dir);
 OrthDirection& operator--(OrthDirection& dir);
 OrthDirection operator+(OrthDirection dir, int add);
 OrthDirection operator-(OrthDirection dir, int subtract);
+OrthDirection& operator+=(OrthDirection& dir, int add);
+OrthDirection& operator-=(OrthDirection& dir, int subtract);
 
 OrthDirection GetOppositeDir(OrthDirection dir);
 
