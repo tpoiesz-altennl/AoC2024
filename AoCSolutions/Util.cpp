@@ -133,6 +133,18 @@ OrthDirection operator-(OrthDirection dir, int subtract)
 	return dir + subtract;
 }
 
+OrthDirection& operator+=(OrthDirection& dir, int add)
+{
+	dir = dir + add;
+	return dir;
+}
+
+OrthDirection& operator-=(OrthDirection& dir, int subtract)
+{
+	dir = dir - subtract;
+	return dir;
+}
+
 OrthDirection GetOppositeDir(OrthDirection dir)
 {
 	switch (dir)
