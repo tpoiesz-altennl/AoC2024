@@ -28,6 +28,6 @@
 int main()
 {
     u64 iter = 100;
-    return Day21::Solution2();
+    return Day11::Solution2();
     return 0;
 }
