@@ -231,7 +231,7 @@ u64 BuildCostTable(cost_lookup_table<Vec2Pair>& table, Vec2Pair entry, vec2 ille
 {
 	auto it = table.find(entry);
 	if (it == table.end())
-		it = table.emplace(std::make_pair(entry, std::vector<u64>(maxRecursionDepth, 0))).first;
+		it = table.emplace_empty(entry, maxRecursionDepth, 0).first;
 	else if (it->second[recursionDepth - 1] != 0) // Entry has already been made
 		return it->second[recursionDepth - 1];
 
