@@ -16,7 +16,11 @@ using u64 = unsigned long long;
 template<typename T>
 class horizontal_vector : public std::vector<T>
 {
-	// This class needs no body; it only exists to differentiate vectors that need to be printed horizontally
+public:
+	horizontal_vector() = default;
+	horizontal_vector(std::initializer_list<T> ilist)
+		: std::vector<T>(ilist)
+	{ }
 };
 
 template <typename T>
