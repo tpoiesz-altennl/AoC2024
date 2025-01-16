@@ -285,22 +285,24 @@ public:
 		std::vector<horizontal_vector<T>> ret;
 		for (const std::string& s : input)
 		{
-			if (size_t pos = s.find(separator); pos != std::string::npos)
+			size_t pos = s.find(separator);
+			if (pos == std::string::npos)
+				incompatibleLines.push_back(s);
+			else
 			{
+				size_t startOfElem = 0;
 				horizontal_vector<T> temp;
-				std::stringstream ss(s);
-				T elem;
-				char throwaway;
 				do
 				{
-					ss >> elem >> throwaway;
+					std::stringstream ss(s.substr(startOfElem, pos - startOfElem));
+					T elem;
+					ss >> elem;
 					temp.push_back(elem);
-				} while (throwaway == separator && !ss.eof());
-				
+					startOfElem = pos + 1;
+					pos = s.find(separator, pos + 1);
+				} while (startOfElem != 0); // StartOfElem will be 0 again after parsing the elem from the last separator to string::npos
 				ret.push_back(temp);
 			}
-			else
-				incompatibleLines.push_back(s);
 		}
 
 		return ret;
