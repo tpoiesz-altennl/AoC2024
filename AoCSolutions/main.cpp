@@ -24,6 +24,7 @@
 #include "Day22/Day22.h"
 #include "Day23/Day23.h"
 #include "Day24/Day24.h"
+#include "Day25/Day25.h"
 #include "Util.h"
 
 #include <chrono>
@@ -31,6 +32,6 @@
 int main()
 {
     u64 iter = 100;
-    return Day24::Solution1();
+    return Day25::Solution1();
     return 0;
 }
