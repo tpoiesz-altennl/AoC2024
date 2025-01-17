@@ -9,13 +9,28 @@
 #include "Day7/Day7.h"
 #include "Day8/Day8.h"
 #include "Day9/Day9.h"
+#include "Day10/Day10.h"
+#include "Day11/Day11.h"
+#include "Day12/Day12.h"
+#include "Day13/Day13.h"
+#include "Day14/Day14.h"
+#include "Day15/Day15.h"
+#include "Day16/Day16.h"
+#include "Day17/Day17.h"
+#include "Day18/Day18.h"
+#include "Day19/Day19.h"
+#include "Day20/Day20.h"
+#include "Day21/Day21.h"
+#include "Day22/Day22.h"
+#include "Day23/Day23.h"
+#include "Day24/Day24.h"
 #include "Util.h"
 
 #include <chrono>
 
 int main()
 {
-    unsigned long long iter = 10;
-    int exitCode = Day9::Solution2();
-    return exitCode;
+    u64 iter = 100;
+    return Day24::Solution1();
+    return 0;
 }

@@ -1,54 +1,6 @@
 #include "Day4.h"
 #include "../Util.h"
 
-Direction& operator++(Direction& dir)
-{
-	switch (dir)
-	{
-	case Direction::UpLeft:
-	{
-		dir = Direction::Up;
-		return dir;
-	}
-	case Direction::Up:
-	{
-		dir = Direction::UpRight;
-		return dir;
-	}
-	case Direction::UpRight:
-	{
-		dir = Direction::Left;
-		return dir;
-	}
-	case Direction::Left:
-	{
-		dir = Direction::Right;
-		return dir;
-	}
-	case Direction::Right:
-	{
-		dir = Direction::DownLeft;
-		return dir;
-	}
-	case Direction::DownLeft:
-	{
-		dir = Direction::Down;
-		return dir;
-	}
-	case Direction::Down:
-	{
-		dir = Direction::DownRight;
-		return dir;
-	}
-	case Direction::DownRight:
-	default:
-	{
-		dir = Direction::None; // end at None
-		return dir;
-	}
-	}
-}
-
 int MakesXMASver1(const std::vector<std::string>& grid, const unsigned int indexX, const unsigned int indexY, 
 	const char currChar = 'X', const Direction dir = Direction::UpLeft)
 {

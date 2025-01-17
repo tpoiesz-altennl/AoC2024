@@ -6,96 +6,19 @@
 #include <iostream>
 #include <sstream>
 
-bool MatchMulSyntax(const std::string& input, int& operand1, int& operand2, bool isRecursion = false)
+bool MatchMulSyntax(const std::string& input, int& operand1, int& operand2)
 {
-    if ((!isRecursion && input.substr(0, 4) != "mul(") || (isRecursion && input[0] != ','))
-        return false;
-
-    std::smatch m3;
-    std::regex threeDigit("([0-9][0-9][0-9])");
-    bool threeDigitMatch = std::regex_search(input, m3, threeDigit);
-    std::regex_match(input, m3, threeDigit);
-
-    std::smatch m2;
-    std::regex twoDigit("([0-9][0-9])");
-    bool twoDigitMatch = std::regex_search(input, m2, twoDigit);
-
-    std::smatch m1;
-    std::regex oneDigit("([0-9])");
-    bool oneDigitMatch = std::regex_search(input, m1, oneDigit);
-    
-    if (threeDigitMatch)
+    std::regex mulSyntax("mul\\(\\d+,\\d+\\)");
+    std::smatch m;
+    if (std::regex_search(input, m, mulSyntax))
     {
-        // If second mul number is three digits
-        if (m3.prefix().str().back() == ',' && m3.suffix().length() && m3.suffix().str().front() == ')')
-        {
-            if (isRecursion) // Number before , already processed
-            {
-                operand2 = std::stoi(m3[0].str());
-                return true;
-            }
-            else if (twoDigitMatch && m2.prefix().str() == "mul(")
-            { // Two digit number before ,
-                operand1 = std::stoi(m2[0].str());
-                operand2 = std::stoi(m3[0].str());
-                return true;
-            }
-            else if (oneDigitMatch && m1.prefix().str() == "mul(")
-            { // One digit number before ,
-                operand1 = std::stoi(m1[0].str());
-                operand2 = std::stoi(m3[0].str());
-                return true;
-            }
-            else // No number before ,
-                return false;
-        }
-        // If first number of mul is three digits, we have to recurse to find second number of mul
-        else if (m3.suffix().length() && m3.suffix().str().front() == ',')
-        {
-            operand1 = std::stoi(m3[0].str());
-            return MatchMulSyntax(m3.suffix().str(), operand1, operand2, true);
-        }
-    }
-    else if (twoDigitMatch)
-    {
-        // If second mul number is two digits
-        if (m2.prefix().str().back() == ',' && m2.suffix().length() && m2.suffix().str().front() == ')')
-        {
-            if (isRecursion) // Number before , already processed
-            {
-                operand2 = std::stoi(m2[0].str());
-                return true;
-            }
-            else if (oneDigitMatch && m1.prefix().str() == "mul(")
-            { // One digit number before ,
-                operand1 = std::stoi(m1[0].str());
-                operand2 = std::stoi(m2[0].str());
-                return true;
-            }
-            else // No number before ,
-                return false;
-        }
-        // If first number of mul is two digits and second number of mul is two or fewer digits, we have to recurse to find it
-        else if (m2.suffix().length() && m2.suffix().str().front() == ',')
-        {
-            operand1 = std::stoi(m2[0].str());
-            return MatchMulSyntax(m2.suffix().str(), operand1, operand2, true);
-        }
-    }
-    else if (oneDigitMatch)
-    {
-        // First number of mul is one digit; recurse to find second one-digit number (if any)
-        if (m1.suffix().length() && m1.suffix().str().front() == ',')
-        {
-            operand1 = std::stoi(m1[0].str());
-            return MatchMulSyntax(m1.suffix().str(), operand1, operand2, true);
-        }
-        // Second number of mul is one digit (found by recursion)
-        else if (isRecursion && m1.suffix().length() && m1.suffix().str().front() == ')')
-        {
-            operand2 = std::stoi(m1[0].str());
-            return true;
-        }
+        std::regex digit("\\d+");
+        std::regex_search(input, m, digit);
+        operand1 = std::stoi(m[0].str());
+        std::string otherHalf = m.suffix().str();
+        std::regex_search(otherHalf, m, digit);
+        operand2 = std::stoi(m[0].str());
+        return true;
     }
 
     return false;
@@ -119,14 +42,14 @@ int Day3::Solution1()
         }
     }
 
-    /*Testing::DebugFile dbg(__FILE__);
+    Testing::DebugFile dbg(__FILE__);
     int a = 0, b = 0;
-    dbg.OutputMatches<std::string, int&, int&, bool>(mulStrings, &MatchMulSyntax, false, a, b, false);*/
+    dbg.OutputMatches<std::string, int&, int&>(mulStrings, &MatchMulSyntax, false, a, b);
     int total = 0;
-    for (std::string funny : mulStrings)
+    for (std::string mulInstruction : mulStrings)
     {
         int a = 0, b = 0;
-        if (MatchMulSyntax(funny, a, b))
+        if (MatchMulSyntax(mulInstruction, a, b))
             total += a * b;
     }
 
@@ -174,13 +97,13 @@ int Day3::Solution2()
 
     /*FileUtil::DebugFile dbg(__FILE__);
     int a = 0, b = 0;
-    dbg.OutputMatches<std::string, int&, int&, bool>(instructions, &MatchMulSyntax, false, a, b, false);*/
+    dbg.OutputMatches<std::string, int&, int&>(instructions, &MatchMulSyntax, false, a, b);*/
 
     int total = 0;
-    for (std::string funny : instructions)
+    for (std::string mulInstruction : instructions)
     {
         int a = 0, b = 0;
-        if (MatchMulSyntax(funny, a, b))
+        if (MatchMulSyntax(mulInstruction, a, b))
             total += a * b;
     }
 
