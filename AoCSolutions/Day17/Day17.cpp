@@ -1,6 +1,5 @@
 #include "Day17.h"
 #include "../Util.h"
-#include <cmath>
 #include <iostream>
 
 static unsigned long long A, B, C;
@@ -230,38 +229,38 @@ bool MatchOutput(const horizontal_vector<int>& program)
 	return true;
 }
 
-void TryNumbers(const horizontal_vector<int>& program, unsigned long long& currentResult, int executionDepth)
+bool TryNumbers(const horizontal_vector<int>& program, u64& currentResult, int executionDepth)
 {
-	if (executionDepth == program.size())
-		return;
+	if (executionDepth == program.size()) // We've added more numbers than we should need to add to produce a valid output
+		return false;
 
 	for (unsigned int i = 0; i < 8; ++i)
 	{
 		currentResult += i;
 		A = currentResult;
 		if (ExecuteProgram(program)) // ExecuteProgram returns a non-0 int if the program is invalid
-			return;
+			return false;
 		if (MatchOutput(program))
 		{
 			if (Output.size() == program.size())
 			{
 				std::cout << Output << std::endl;
 				std::cout << currentResult << std::endl;
+				return true;
 			}
 			else
 			{
 				currentResult = currentResult << 3;
-				TryNumbers(program, currentResult, executionDepth + 1);
-				currentResult = currentResult >> 3;
+				if (TryNumbers(program, currentResult, executionDepth + 1))
+					return true;
+				else
+					currentResult = currentResult >> 3;
 			}
 		}
-		else
-		{
-			currentResult -= i;
-		}
+		currentResult -= i;
 	}
 
-	std::cout << Output << std::endl;
+	return false;
 }
 
 int Day17::Solution2ver1()
