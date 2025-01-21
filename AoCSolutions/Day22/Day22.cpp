@@ -19,13 +19,11 @@ int Day22::Solution1()
 	u64 total = 0;
 	for (unsigned int secret : input)
 	{
-		std::cout << secret << ": ";
 		for (unsigned int i = 0; i < iterations; ++i)
 		{
 			secret = MakeNewNumber(secret);
 		}
 		total += secret;
-		std::cout << secret << std::endl;
 	}
 
 	std::cout << total;
@@ -43,7 +41,7 @@ std::vector<char> BuildPriceList(unsigned int secret, unsigned int numIters)
 	return prices;
 }
 
-std::vector<char> BuildPriceChangeList(std::vector<char> prices)
+std::vector<char> BuildPriceChangeList(const std::vector<char>& prices)
 {
 	std::vector<char> priceChanges;
 	for (unsigned int i = 0; i < prices.size() - 1; ++i)
@@ -97,83 +95,32 @@ namespace std
 
 using price_predictor = std::unordered_map<vec4c, short>;
 
-static unsigned int buyerNum = 0;
-
-price_predictor BuildPricePredictionList(std::vector<char> prices, std::vector<char> priceChanges, Testing::DebugFile* dbg = nullptr)
+price_predictor BuildPricePredictionList(const std::vector<char>& prices, const std::vector<char>& priceChanges)
 {
 	price_predictor predictionList;
 	for (unsigned int i = 3; i < priceChanges.size(); ++i)
 	{
 		vec4c fluctuation(priceChanges[i - 3], priceChanges[i - 2], priceChanges[i - 1], priceChanges[i]);
-		auto inMap = predictionList.find(fluctuation);
-		if (inMap == predictionList.end())
-		{
-			predictionList.emplace(fluctuation, prices[i + 1]);
-			if (dbg && fluctuation == vec4c(0, 0, -1, 1))
-			{
-				std::stringstream ss;
-				ss << buyerNum << ": " << fluctuation.to_int() << '\t' << static_cast<short>(prices[i + 1]) << " at line " << i + 1 << '\n';
-				dbg->OutputRule<std::string>(ss.str());
-			}
-		}
-		else
-		{
-			if (inMap->second < prices[i + 1])
-				inMap->second = prices[i + 1];
-
-			if (dbg && fluctuation == vec4c(0, 0, -1, 1))
-			{
-				std::stringstream ss;
-				ss << buyerNum << ": " << fluctuation.to_int() << '\t' << static_cast<short>(prices[i + 1]) << " at line " << i + 1 << '\n';
-				dbg->OutputRule<std::string>(ss.str());
-			}
-		}
+		predictionList.emplace(fluctuation, prices[i + 1]);
 	}
-	if (dbg)
-		++buyerNum;
 	return predictionList;
 }
 
-void MergePricePredictionLists(price_predictor& a, price_predictor b, Testing::DebugFile* dbg = nullptr)
+void MergePricePredictionLists(price_predictor& a, price_predictor b)
 {
 	// Combine all entries found in both
 	for (auto itA = a.begin(); itA != a.end(); ++itA)
 	{
 		if (auto inB = b.find(itA->first); inB != b.end())
 		{
-			if (dbg && itA->first == vec4c(0, 0, -1, 1))
-			{
-				std::stringstream ss;
-				ss << itA->first.to_int() << " from " << buyerNum << ": " << itA->second << " and from " << buyerNum + 1 << ": " << inB->second;
-				dbg->OutputRule<std::string>(ss.str());
-			}
 			itA->second += inB->second;
 			b.erase(inB); // Don't need to consider this entry again
-		}
-		else if (dbg && itA->first == vec4c(0, 0, -1, 1))
-		{
-			std::stringstream ss;
-			ss << itA->first.to_int() << " from " << buyerNum << ": " << itA->second;
-			dbg->OutputRule<std::string>(ss.str());
 		}
 	}
 	// Also add all entries only found in b
 	for (auto itB = b.begin(); itB != b.end(); ++itB)
 	{
 		a.emplace(itB->first, itB->second);
-		if (dbg && itB->first == vec4c(0, 0, -1, 1))
-		{
-			std::stringstream ss;
-			ss << itB->first.to_int() << " from " << buyerNum + 1 << ": " << itB->second;
-			dbg->OutputRule<std::string>(ss.str());
-		}
-	}
-
-	if (dbg)
-	{
-		dbg->OutputRule<std::string>("\n");
-		std::cout << '.';
-		++buyerNum;
 	}
 }
 
@@ -189,22 +136,12 @@ int Day22::Solution2()
 	{
 		std::vector<char> buyerPrices = BuildPriceList(buyer, iterations);
 		std::vector<char> priceChanges = BuildPriceChangeList(buyerPrices);
-		/*std::stringstream ss;
-		ss << buyerNum++ << " with secret " << buyer << ":\t" << static_cast<int>(buyerPrices[0]) << '\n';
-		for (unsigned int i = 1; i < buyerPrices.size(); ++i)
-		{
-			ss << '\t' << static_cast<int>(buyerPrices[i])
-				<< ' ' << static_cast<int>(priceChanges[i - 1])
-				<< '\n';
-		}
-		dbg.OutputRule<std::string>(ss.str() + "\n");*/
-		pricePredictions.push_back(BuildPricePredictionList(buyerPrices, priceChanges/*, &dbg*/));
+		pricePredictions.push_back(BuildPricePredictionList(buyerPrices, priceChanges));
 	}
-	buyerNum = 0;
 	price_predictor combinedPricePredictor = pricePredictions[0];
 	for (unsigned int i = 1; i < pricePredictions.size(); ++i)
 	{
-		MergePricePredictionLists(combinedPricePredictor, pricePredictions[i]/*, &dbg*/);
+		MergePricePredictionLists(combinedPricePredictor, pricePredictions[i]);
 	}
 
 	int bestPrice = 0;

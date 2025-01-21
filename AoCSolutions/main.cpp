@@ -32,6 +32,6 @@
 int main()
 {
     u64 iter = 100;
-    return Day17::Solution2ver1();
+    return Day22::Solution2();
     return 0;
 }
