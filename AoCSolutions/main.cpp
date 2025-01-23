@@ -32,6 +32,8 @@
 int main()
 {
     u64 iter = 100;
-    return Day22::Solution2();
-    return 0;
+    int exit1 = Day5::Solution1();
+    //int exit2 = Day4::Solution1ver2();
+    //int exit3 = Day4::Solution2();
+    return exit1 /*+ exit2 + exit3*/;
 }

@@ -1,10 +1,9 @@
 #include "Day4.h"
 #include "../Util.h"
 
-int MakesXMASver1(const std::vector<std::string>& grid, const unsigned int indexX, const unsigned int indexY, 
-	const char currChar = 'X', const Direction dir = Direction::UpLeft)
+int MakesXMASver1(const Grid& grid, const vec2 pos, const char currChar = 'X', const Direction dir = Direction::UpLeft)
 {
-	if (currChar != grid[indexY][indexX])
+	if (currChar != grid.at(pos))
 		return 0;
 
 	if (currChar == 'S')
@@ -15,111 +14,23 @@ int MakesXMASver1(const std::vector<std::string>& grid, const unsigned int index
 		switch (d)
 		{
 		case Direction::UpLeft:
-		{
-			if (indexX < 3 || indexY < 3)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x - 3, pos.y - 3));
 		case Direction::Up:
-		{
-			if (indexY < 3)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x, pos.y - 3));
 		case Direction::UpRight:
-		{
-			if (grid[0].size() < 4 || indexX > grid[0].size() - 4 || indexY < 3)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x + 3, pos.y - 3));
 		case Direction::Left:
-		{
-			if (indexX < 3)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x - 3, pos.y));
 		case Direction::Right:
-		{
-			if (grid[0].size() < 4 || indexX > grid[0].size() - 4)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x + 3, pos.y));
 		case Direction::DownLeft:
-		{
-			if (indexX < 3 || grid.size() < 4 || indexY > grid.size() - 4)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x - 3, pos.y + 3));
 		case Direction::Down:
-		{
-			if (grid.size() < 4 || indexY > grid.size() - 4)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x, pos.y + 3));
 		case Direction::DownRight:
-		{
-			if (grid[0].size() < 4 || indexX > grid[0].size() - 4 || grid.size() < 4 || indexY > grid.size() - 4)
-				return true;
-			break;
-		}
+			return !grid.IsValidPos(vec2(pos.x + 3, pos.y + 3));
 		default:
 			return true;
-		}
-
-		return false;
-	};
-
-	auto determineNextPos = [=](unsigned int& x, unsigned int& y, const Direction d) {
-		switch (d)
-		{
-		case Direction::UpLeft:
-		{
-			x = indexX - 1;
-			y = indexY - 1;
-			break;
-		}
-		case Direction::Up:
-		{
-			x = indexX;
-			y = indexY - 1;
-			break;
-		}
-		case Direction::UpRight:
-		{
-			x = indexX + 1;
-			y = indexY - 1;
-			break;
-		}
-		case Direction::Left:
-		{
-			x = indexX - 1;
-			y = indexY;
-			break;
-		}
-		case Direction::Right:
-		{
-			x = indexX + 1;
-			y = indexY;
-			break;
-		}
-		case Direction::DownLeft:
-		{
-			x = indexX - 1;
-			y = indexY + 1;
-			break;
-		}
-		case Direction::Down:
-		{
-			x = indexX;
-			y = indexY + 1;
-			break;
-		}
-		case Direction::DownRight:
-		{
-			x = indexX + 1;
-			y = indexY + 1;
-			break;
-		}
 		}
 	};
 
@@ -129,34 +40,20 @@ int MakesXMASver1(const std::vector<std::string>& grid, const unsigned int index
 		for (Direction d = Direction::UpLeft; d != Direction::None; ++d)
 		{
 			if (breakEarly(d))
-			{
 				continue;
-			}
 
-			char nextChar = 'M';
-			unsigned int nextIndexX = -1, nextIndexY = -1;
-			determineNextPos(nextIndexX, nextIndexY, d);
-			totalXMASses += MakesXMASver1(grid, nextIndexX, nextIndexY, nextChar, d);
+			totalXMASses += MakesXMASver1(grid, NextPos(pos, d), 'M', d);
 		}
 		return totalXMASses;
 	}
 	else
 	{
-		unsigned int nextIndexX = -1, nextIndexY = -1;
-		determineNextPos(nextIndexX, nextIndexY, dir);
-		char nextChar = '0';
 		switch (currChar)
 		{
 		case 'M':
-		{
-			nextChar = 'A';
-			return MakesXMASver1(grid, nextIndexX, nextIndexY, nextChar, dir);
-		}
+			return MakesXMASver1(grid, NextPos(pos, dir), 'A', dir);
 		case 'A':
-		{
-			nextChar = 'S';
-			return MakesXMASver1(grid, nextIndexX, nextIndexY, nextChar, dir);
-		}
+			return MakesXMASver1(grid, NextPos(pos, dir), 'S', dir);
 		}
 	}
 	// Should likely never hit
@@ -165,28 +62,28 @@ int MakesXMASver1(const std::vector<std::string>& grid, const unsigned int index
 
 int Day4::Solution1ver1()
 {
-	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+	//Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__, true));
+	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
 	if (grid.size() < 4 || grid[0].size() < 4)
 		return 1;
 
 	unsigned int totalXMASses = 0;
-	for (unsigned int i = 0; i < grid.size(); ++i)
+	for (unsigned int y = 0; y < grid.size(); ++y)
 	{
-		for (unsigned int j = 0; j < grid[0].size(); ++j)
+		for (unsigned int x = 0; x < grid[0].size(); ++x)
 		{
-			totalXMASses += MakesXMASver1(grid, j, i);
+			totalXMASses += MakesXMASver1(grid, vec2(x, y));
 		}
 	}
 
-	std::cout << totalXMASses;
+	std::cout << totalXMASses << std::endl;
 
 	return 0;
 }
 
-int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
+int MakesXMASver2(const Grid& grid, const Direction dir)
 {
 	unsigned int numXMAS = 0;
 	switch (dir)
@@ -195,10 +92,10 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 	{
 		for (unsigned int y = 3; y < grid.size(); ++y)
 		{
-			for (unsigned int x = 3; x < grid[0].size(); ++x) // Assume rectangular grid
+			for (unsigned int x = 3; x < grid.at(0).size(); ++x) // Assume rectangular grid
 			{
-				if (grid[y][x] == 'X' && grid[y - 1][x - 1] == 'M' &&
-					grid[y - 2][x - 2] == 'A' && grid[y - 3][x - 3] == 'S')
+				if (grid.at(x, y) == 'X' && grid.at(x - 1, y - 1) == 'M' &&
+					grid.at(x - 2, y - 2) == 'A' && grid.at(x - 3, y - 3) == 'S')
 					++numXMAS;
 			}
 		}
@@ -208,10 +105,10 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 	{
 		for (unsigned int y = 3; y < grid.size(); ++y)
 		{
-			for (unsigned int x = 0; x < grid[0].size(); ++x)
+			for (unsigned int x = 0; x < grid.at(0).size(); ++x)
 			{
-				if (grid[y][x] == 'X' && grid[y - 1][x] == 'M' &&
-					grid[y - 2][x] == 'A' && grid[y - 3][x] == 'S')
+				if (grid.at(x, y) == 'X' && grid.at(x, y - 1) == 'M' &&
+					grid.at(x, y - 2) == 'A' && grid.at(x, y - 3) == 'S')
 					++numXMAS;
 			}
 		}
@@ -221,10 +118,10 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 	{
 		for (unsigned int y = 3; y < grid.size(); ++y)
 		{
-			for (unsigned int x = 0; x < grid[0].size() - 3; ++x)
+			for (unsigned int x = 0; x < grid.at(0).size() - 3; ++x)
 			{
-				if (grid[y][x] == 'X' && grid[y - 1][x + 1] == 'M' &&
-					grid[y - 2][x + 2] == 'A' && grid[y - 3][x + 3] == 'S')
+				if (grid.at(x, y) == 'X' && grid.at(x + 1, y - 1) == 'M' &&
+					grid.at(x + 2, y - 2) == 'A' && grid.at(x + 3, y - 3) == 'S')
 					++numXMAS;
 			}
 		}
@@ -246,7 +143,7 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 	}
 	case Direction::Right:
 	{
-		for (std::string row : grid)
+		for (const std::string& row : grid)
 		{
 			size_t pos = row.find("XMAS", 0);
 			while (pos != std::string::npos)
@@ -261,10 +158,10 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 	{
 		for (unsigned int y = 0; y < grid.size() - 3; ++y)
 		{
-			for (unsigned int x = 3; x < grid[0].size(); ++x)
+			for (unsigned int x = 3; x < grid.at(0).size(); ++x)
 			{
-				if (grid[y][x] == 'X' && grid[y + 1][x - 1] == 'M' &&
-					grid[y + 2][x - 2] == 'A' && grid[y + 3][x - 3] == 'S')
+				if (grid.at(x, y) == 'X' && grid.at(x - 1, y + 1) == 'M' &&
+					grid.at(x - 2, y + 2) == 'A' && grid.at(x - 3, y + 3) == 'S')
 					++numXMAS;
 			}
 		}
@@ -274,10 +171,10 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 	{
 		for (unsigned int y = 0; y < grid.size() - 3; ++y)
 		{
-			for (unsigned int x = 0; x < grid[0].size(); ++x)
+			for (unsigned int x = 0; x < grid.at(0).size(); ++x)
 			{
-				if (grid[y][x] == 'X' && grid[y + 1][x] == 'M' &&
-					grid[y + 2][x] == 'A' && grid[y + 3][x] == 'S')
+				if (grid.at(x, y) == 'X' && grid.at(x, y + 1) == 'M' &&
+					grid.at(x, y + 2) == 'A' && grid.at(x, y + 3) == 'S')
 					++numXMAS;
 			}
 		}
@@ -287,10 +184,10 @@ int MakesXMASver2(const std::vector<std::string>& grid, const Direction dir)
 	{
 		for (unsigned int y = 0; y < grid.size() - 3; ++y)
 		{
-			for (unsigned int x = 0; x < grid[0].size() - 3; ++x)
+			for (unsigned int x = 0; x < grid.at(0).size() - 3; ++x)
 			{
-				if (grid[y][x] == 'X' && grid[y + 1][x + 1] == 'M' &&
-					grid[y + 2][x + 2] == 'A' && grid[y + 3][x + 3] == 'S')
+				if (grid.at(x, y) == 'X' && grid.at(x + 1, y + 1) == 'M' &&
+					grid.at(x + 2, y + 2) == 'A' && grid.at(x + 3, y + 3) == 'S')
 					++numXMAS;
 			}
 		}
@@ -315,36 +212,36 @@ int Day4::Solution1ver2()
 		totalXMASses += MakesXMASver2(grid, d);
 	}
 
-	std::cout << totalXMASses;
+	std::cout << totalXMASses << std::endl;
 
 	return 0;
 }
 
-bool MakesMASX(const std::vector<std::string>& grid, const unsigned int indexX, const unsigned int indexY)
+bool MakesMASX(const Grid& grid, const unsigned int indexX, const unsigned int indexY)
 {
-	if (grid[indexY + 1][indexX + 1] != 'A')
+	if (grid.at(indexX + 1, indexY + 1) != 'A')
 		return false;
 
-	if (grid[indexY][indexX] == 'M')
+	if (grid.at(indexX, indexY) == 'M')
 	{
-		if (grid[indexY + 2][indexX + 2] != 'S')
+		if (grid.at(indexX + 2, indexY + 2) != 'S')
 			return false;
 
-		if (grid[indexY][indexX + 2] == 'M' && grid[indexY + 2][indexX] == 'S')
+		if (grid.at(indexX + 2, indexY) == 'M' && grid.at(indexX, indexY + 2) == 'S')
 			return true;
-		else if (grid[indexY][indexX + 2] == 'S' && grid[indexY + 2][indexX] == 'M')
+		else if (grid.at(indexX + 2, indexY) == 'S' && grid.at(indexX, indexY + 2) == 'M')
 			return true;
 		else
 			return false;
 	}
-	else if (grid[indexY][indexX] == 'S')
+	else if (grid.at(indexX, indexY) == 'S')
 	{
-		if (grid[indexY + 2][indexX + 2] != 'M')
+		if (grid.at(indexX + 2, indexY + 2) != 'M')
 			return false;
 
-		if (grid[indexY][indexX + 2] == 'M' && grid[indexY + 2][indexX] == 'S')
+		if (grid.at(indexX + 2, indexY) == 'M' && grid.at(indexX, indexY + 2) == 'S')
 			return true;
-		else if (grid[indexY][indexX + 2] == 'S' && grid[indexY + 2][indexX] == 'M')
+		else if (grid.at(indexX + 2, indexY) == 'S' && grid.at(indexX, indexY + 2) == 'M')
 			return true;
 		else
 			return false;
@@ -355,8 +252,8 @@ bool MakesMASX(const std::vector<std::string>& grid, const unsigned int indexX, 
 
 int Day4::Solution2()
 {
-	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+	//Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
 	if (grid.size() < 4 || grid[0].size() < 4)
@@ -371,7 +268,7 @@ int Day4::Solution2()
 		}
 	}
 
-	std::cout << totalXMASses;
+	std::cout << totalXMASses << std::endl;
 
 	return 0;
 }

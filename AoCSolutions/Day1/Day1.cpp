@@ -9,33 +9,26 @@
 
 int Day1::Solution1()
 {
-	std::ifstream inFile = FileUtil::OpenFile(__FILE__);
-	//std::ifstream inFile = FileUtil::OpenFile(__FILE__, true);
-
-	if (!inFile)
+	std::vector<unsigned int> leftList, rightList;
 	{
-		inFile.close();
-		return 1;
+		std::vector<unsigned int> completeList = FileUtil::ReadInputIntoVec<unsigned int>(__FILE__);
+		//std::vector<unsigned int> completeList = FileUtil::ReadInputIntoVec<unsigned int>(__FILE__, true);
+		for (unsigned int i = 0; i < completeList.size(); ++i)
+		{
+			if (i % 2 == 0)
+				leftList.push_back(completeList[i]);
+			else
+				rightList.push_back(completeList[i]);
+		}
+		std::sort(leftList.begin(), leftList.end());
+		std::sort(rightList.begin(), rightList.end());
 	}
-	
-	std::vector<int> leftList, rightList;
 
-	int leftElem, rightElem;
-	while (inFile >> leftElem >> rightElem)
+	u64 totalDiff = 0;
+	for (unsigned int i = 0; i < leftList.size(); ++i)
 	{
-		leftList.push_back(leftElem);
-		rightList.push_back(rightElem);
-	}
-	inFile.close();
-
-	std::sort(leftList.begin(), leftList.end());
-	std::sort(rightList.begin(), rightList.end());
-
-	unsigned long long totalDiff = 0;
-	for (size_t i = 0; i < leftList.size(); ++i)
-	{
-		unsigned int diff = static_cast<unsigned long long>(std::abs(rightList[i] - leftList[i]));
-		std::cout << leftList[i] << '\t' << rightList[i] << '\t' << diff << '\n';
+		unsigned int diff = (rightList[i] > leftList[i] ? rightList[i] - leftList[i] : leftList[i] - rightList[i]);
+		//std::cout << leftList[i] << '\t' << rightList[i] << '\t' << diff << '\n';
 		totalDiff += diff;
 	}
 
@@ -46,30 +39,23 @@ int Day1::Solution1()
 
 int Day1::Solution2()
 {
-	std::ifstream inFile = FileUtil::OpenFile(__FILE__);
-	//std::ifstream inFile = FileUtil::OpenTestFile(__FILE__, true);
-
-	if (!inFile)
+	std::vector<unsigned int> leftList, rightList;
 	{
-		inFile.close();
-		return 1;
+		std::vector<unsigned int> completeList = FileUtil::ReadInputIntoVec<unsigned int>(__FILE__);
+		//std::vector<unsigned int> completeList = FileUtil::ReadInputIntoVec<unsigned int>(__FILE__, true);
+		for (unsigned int i = 0; i < completeList.size(); ++i)
+		{
+			if (i % 2 == 0)
+				leftList.push_back(completeList[i]);
+			else
+				rightList.push_back(completeList[i]);
+		}
+		std::sort(leftList.begin(), leftList.end());
+		std::sort(rightList.begin(), rightList.end());
 	}
-
-	std::vector<int> leftList, rightList;
-
-	int leftElem, rightElem;
-	while (inFile >> leftElem >> rightElem)
-	{
-		leftList.push_back(leftElem);
-		rightList.push_back(rightElem);
-	}
-	inFile.close();
-
-	std::sort(leftList.begin(), leftList.end());
-	std::sort(rightList.begin(), rightList.end());
 
 	unsigned int numMatches = 0;
-	unsigned long long simiScore = 0;
+	u64 simiScore = 0;
 	auto rightListIt = rightList.begin();
 	for (size_t i = 0; i < leftList.size(); ++i)
 	{
@@ -77,7 +63,6 @@ int Day1::Solution2()
 		{
 			numMatches = 0;
 		}
-		unsigned int count = 0;
 		while (*rightListIt < leftList[i])
 		{
 			++rightListIt;
@@ -87,8 +72,8 @@ int Day1::Solution2()
 			++numMatches;
 			++rightListIt;
 		}
-		simiScore += numMatches * static_cast<unsigned long long>(leftList[i]);
-		std::cout << leftList[i] << '\t' << numMatches << '\t' << numMatches * static_cast<unsigned long long>(leftList[i]) << '\n';
+		simiScore += numMatches * static_cast<u64>(leftList[i]);
+		//std::cout << leftList[i] << '\t' << numMatches << '\t' << numMatches * static_cast<u64>(leftList[i]) << '\n';
 	}
 
 	std::cout << simiScore;

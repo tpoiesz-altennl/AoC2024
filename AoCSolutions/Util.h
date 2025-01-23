@@ -204,72 +204,6 @@ public:
 		return ret;
 	}
 
-	// WIP
-	/*template<typename T1, typename T2, typename ContainerType>
-	static std::unordered_map<T1, ContainerType> ReadInputIntoMap(std::string callingLocation, std::vector<std::string>& incompatibleLines,
-		char separator = NULL, bool uniqueKeysOnly = true, bool isTestFile = false)
-	{
-		std::ifstream file = OpenFile(callingLocation, isTestFile);
-		if (!file)
-		{
-			file.close();
-			return std::unordered_map<T1, ContainerType>();
-		}
-
-		std::unordered_map<T1, ContainerType> ret;
-		T1 tempKey;
-		ContainerType tempVal;
-		std::string line;
-		while (std::getline(file, line))
-		{
-			if (separator)
-			{
-				size_t sepPos = line.find(separator);
-				if (sepPos != std::string::npos)
-				{
-					std::stringstream ss(line.substr(0, sepPos));
-					ss >> tempKey;
-					ss.clear();
-					ss(line.substr(sepPos, line.size() - sepPos));
-					ss >> tempVal;
-
-					if (uniqueKeysOnly)
-						ret.emplace(std::make_pair<T1, ContainerType>(tempKey, tempVal));
-					else
-					{
-						if (auto it = ret.find(tempKey); it != ret.end())
-						{
-							if (std::is_same<std::vector<T2>,ContainerType>::value)
-							{
-								(*it).second.push_back(tempVal);
-							}
-						}
-						else
-							ret.emplace(std::make_pair<T1, ContainerType>(tempKey, { tempVal }));
-					}
-				}
-				else
-					incompatibleLines.push_back(line);
-			}
-			else
-			{
-				std::stringstream ss(line);
-				ss >> tempKey >> tempVal;
-				if (uniqueKeysOnly)
-					ret.emplace(std::make_pair<T1, ContainerType>(tempKey, tempVal));
-				else
-				{
-					if (auto it = ret.find(tempKey); it != ret.end())
-						(*it).push_back(tempKey);
-					else;
-						//ret.emplace(std::make_pair<T1, std::set<ContainerType>>(tempKey, std::set<T2>(tempVal)));
-				}
-			}
-		}
-		file.close();
-		return ret;
-	}*/
-
 	static std::string MakeFolder(const std::string& filepath)
 	{
 		size_t lastSep, secLastSep;
@@ -525,7 +459,7 @@ enum class Direction : unsigned int
 	DownRight
 };
 
-// Order: up-left, up, up-right, left, right, down-left, down, down-right, none
+// Order: up-left, up, up-right, left, right, down-left, down, down-right, none (does not loop)
 Direction& operator++(Direction& dir);
 
 enum class OrthDirection : unsigned int
@@ -763,6 +697,12 @@ struct Grid
 		}
 		return vec2(-1, -1);
 	}
+	
+	// For range-based for-loops
+	std::vector<std::string>::const_iterator begin() const { return grid.begin(); }
+	std::vector<std::string>::const_iterator end() const { return grid.end(); }
+	std::vector<std::string>::const_iterator cbegin() const { return grid.cbegin(); }
+	std::vector<std::string>::const_iterator cend() const { return grid.cend(); }
 };
 
 vec2 NextPos(const vec2& currPos, OrthDirection dir);
