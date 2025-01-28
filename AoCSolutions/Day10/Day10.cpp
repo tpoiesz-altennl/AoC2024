@@ -1,29 +1,12 @@
 #include "Day10.h"
 #include "../Util.h"
 
-// returns coordinate pairs as (x,y)
-std::vector<vec2> Day10::GetCharCoordinates(const std::vector<std::string>& input, char val)
-{
-	std::vector<vec2> ret;
-	for (unsigned int i = 0; i < input.size(); ++i)
-	{
-		for (unsigned int j = 0; j < input[0].size(); ++j)
-		{
-			if (input[i][j] == val)
-			{
-				ret.push_back(vec2(j, i));
-			}
-		}
-	}
-	return ret;
-}
-
-int FindPath(const std::vector<std::string>& grid, const vec2& currCoord, char searchVal, OrthDirection incomingDir,
-	int remainingSteps, std::vector<vec2>& foundNines, bool considerDuplicates = false, Testing::DebugFile* dbg = nullptr)
+unsigned int FindPath(const Grid& grid, const vec2& currCoord, char searchVal, OrthDirection incomingDir,
+	int remainingSteps, std::vector<vec2>& foundNines, bool considerDuplicates = false)
 {
 	if (!considerDuplicates)
 	{
-		if (grid[currCoord.y][currCoord.x] == '9' && std::find(foundNines.begin(), foundNines.end(), currCoord) == foundNines.end())
+		if (grid.at(currCoord) == '9' && std::find(foundNines.begin(), foundNines.end(), currCoord) == foundNines.end())
 		{
 			foundNines.push_back(currCoord);
 			return 1;
@@ -31,99 +14,43 @@ int FindPath(const std::vector<std::string>& grid, const vec2& currCoord, char s
 	}
 	else
 	{
-		if (grid[currCoord.y][currCoord.x] == '9')
+		if (grid.at(currCoord) == '9')
 			return 1;
 	}
 	
 	if (remainingSteps < 1)
 		return 0;
 
-	auto getNextCoord = [&](OrthDirection dir, vec2& nextCoord, OrthDirection& newIncoming) -> bool {
-		switch (dir)
-		{
-		case OrthDirection::Up:
-		{
-			newIncoming = OrthDirection::Down;
-			nextCoord.y -= 1;
-			if (nextCoord.y < 0)
-				return false;
-			else
-				return true;
-		}
-		case OrthDirection::Right:
-		{
-			newIncoming = OrthDirection::Left;
-			nextCoord.x += 1;
-			if (nextCoord.x >= static_cast<int>(grid[0].size()))
-				return false;
-			else
-				return true;
-		}
-		case OrthDirection::Down:
-		{
-			newIncoming = OrthDirection::Up;
-			nextCoord.y += 1;
-			if (nextCoord.y >= static_cast<int>(grid.size()))
-				return false;
-			else
-				return true;
-		}
-		case OrthDirection::Left:
-		{
-			newIncoming = OrthDirection::Right;
-			nextCoord.x -= 1;
-			if (nextCoord.x < 0)
-				return false;
-			else
-				return true;
-		}
-		default:
-			return false;
-		}
-		};
-
 	int totalPaths = 0;
-	OrthDirection nextDir = incomingDir;
-	++nextDir;
+	OrthDirection nextDir = incomingDir + 1;
 	if (incomingDir == OrthDirection::None)
 	{
-		for (unsigned int i = 0; i < 4; ++i)
+		for (unsigned int i = 0; i < 4; ++i, ++nextDir)
 		{
-			vec2 nextCoord = currCoord;
-			OrthDirection newIncoming = OrthDirection::None;
-			if (getNextCoord(nextDir, nextCoord, newIncoming))
+			vec2 nextCoord = NextPos(currCoord, nextDir);
+			if (grid.IsValidPos(nextCoord) && grid.at(nextCoord) == searchVal)
 			{
-				if (grid[nextCoord.y][nextCoord.x] == searchVal)
+				OrthDirection newIncoming = GetOppositeDir(nextDir);
+				if (unsigned int numPaths = FindPath(grid, nextCoord, searchVal + 1, newIncoming, 
+					remainingSteps - 1, foundNines, considerDuplicates))
 				{
-					if (int numPaths = FindPath(grid, nextCoord, searchVal + 1, newIncoming, 
-						remainingSteps - 1, foundNines, considerDuplicates, dbg))
-					{
-						/*if (dbg)
-							; // Do some cool output magic*/
-						totalPaths += numPaths;
-					}
+					totalPaths += numPaths;
 				}
 			}
-			++nextDir;
 		}
 	}
 	else
 	{
 		for (; nextDir != incomingDir; ++nextDir)
 		{
-			vec2 nextCoord = currCoord;
-			OrthDirection newIncoming = OrthDirection::None;
-			if (getNextCoord(nextDir, nextCoord, newIncoming))
+			vec2 nextCoord = NextPos(currCoord, nextDir);
+			if (grid.IsValidPos(nextCoord) && grid.at(nextCoord) == searchVal)
 			{
-				if (grid[nextCoord.y][nextCoord.x] == searchVal)
+				OrthDirection newIncoming = GetOppositeDir(nextDir);
+				if (unsigned int numPaths = FindPath(grid, nextCoord, searchVal + 1, newIncoming, 
+					remainingSteps - 1, foundNines, considerDuplicates))
 				{
-					if (int numPaths = FindPath(grid, nextCoord, searchVal + 1, newIncoming, 
-						remainingSteps - 1, foundNines, considerDuplicates, dbg))
-					{
-						/*if (dbg)
-							; // Do some cool output magic*/
-						totalPaths += numPaths;
-					}
+					totalPaths += numPaths;
 				}
 			}
 		}
@@ -134,21 +61,10 @@ int FindPath(const std::vector<std::string>& grid, const vec2& currCoord, char s
 
 int Day10::Solution1()
 {
-	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+	//Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
-	std::vector<std::string> debugOutput;
-	for (unsigned int i = 0; i < grid.size(); ++i)
-	{
-		std::string dots = "";
-		for (unsigned int j = 0; j < grid[i].size(); ++j)
-		{
-			dots += '.';
-		}
-		debugOutput.push_back(dots);
-	}
-
-	std::vector<vec2> zeroes = GetCharCoordinates(grid, '0');
+	std::vector<vec2> zeroes = grid.FindAll('0');
 	
 	int totalPaths = 0;
 	for (const vec2& zero : zeroes)
@@ -164,21 +80,10 @@ int Day10::Solution1()
 
 int Day10::Solution2()
 {
-	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+	//Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
-	std::vector<std::string> debugOutput;
-	for (unsigned int i = 0; i < grid.size(); ++i)
-	{
-		std::string dots = "";
-		for (unsigned int j = 0; j < grid[i].size(); ++j)
-		{
-			dots += '.';
-		}
-		debugOutput.push_back(dots);
-	}
-
-	std::vector<vec2> zeroes = GetCharCoordinates(grid, '0');
+	std::vector<vec2> zeroes = grid.FindAll('0');
 
 	int totalPaths = 0;
 	for (const vec2& zero : zeroes)

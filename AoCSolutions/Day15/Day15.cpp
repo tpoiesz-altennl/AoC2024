@@ -30,9 +30,6 @@ void ParseFileB(std::vector<std::string>& gridOutput, std::vector<std::string>& 
 			case '#':
 				line.append("##");
 				break;
-			case '.':
-				line.append("..");
-				break;
 			case 'O':
 				line.append("[]");
 				break;
@@ -48,20 +45,6 @@ void ParseFileB(std::vector<std::string>& gridOutput, std::vector<std::string>& 
 		instructionsOutput.push_back(temp);
 	}
 	file.close();
-}
-
-vec2 FindRobot(const Grid& grid)
-{
-	for (unsigned int y = 0; y < grid.size(); ++y)
-	{
-		for (unsigned int x = 0; x < grid.at(y).size(); ++x)
-		{
-			vec2 pos(x, y);
-			if (grid.at(pos) == '@')
-				return pos;
-		}
-	}
-	return vec2(-1, -1);
 }
 
 bool IsWidePushPossible(const Grid& grid, const vec2& pushedPos, OrthDirection dir)
@@ -122,87 +105,22 @@ bool IsWidePushPossible(const Grid& grid, const vec2& pushedPos, OrthDirection d
 		return false;
 }
 
+// Does not check if the push is possible; use IsWidePushPossible first
 void ExecuteWidePush(Grid& grid, const vec2& pushedPos, OrthDirection dir)
 {
-	if (grid[pushedPos] == '[')
+	if (grid[pushedPos] != '[' && grid[pushedPos] != ']')
+		return;
+	
+	vec2 nextPos = NextPos(pushedPos, dir);
+	char toSet = grid[pushedPos];
+	ExecuteWidePush(grid, nextPos, dir);
+	grid[nextPos] = toSet;
+	if (dir == OrthDirection::Up || dir == OrthDirection::Down)
 	{
-		switch (dir)
-		{
-		case OrthDirection::Left:
-		{
-			vec2 nextPos(pushedPos.x - 1, pushedPos.y);
-			ExecuteWidePush(grid, nextPos, dir);
-			grid[nextPos] = '[';
-			return;
-		}
-		case OrthDirection::Right:
-		{
-			vec2 nextPos(pushedPos.x + 1, pushedPos.y);
-			ExecuteWidePush(grid, nextPos, dir);
-			grid[nextPos] = '[';
-			return;
-		}
-		case OrthDirection::Up:
-		{
-			vec2 nextLeftPos(pushedPos.x, pushedPos.y - 1);
-			vec2 rightHalf(pushedPos.x + 1, pushedPos.y);
-			ExecuteWidePush(grid, nextLeftPos, dir);
-			grid[nextLeftPos] = '[';
-			grid[pushedPos] = '.';
-			ExecuteWidePush(grid, rightHalf, dir);
-			return;
-		}
-		case OrthDirection::Down:
-		{
-			vec2 nextLeftPos(pushedPos.x, pushedPos.y + 1);
-			vec2 rightHalf(pushedPos.x + 1, pushedPos.y);
-			ExecuteWidePush(grid, nextLeftPos, dir);
-			grid[nextLeftPos] = '[';
-			grid[pushedPos] = '.';
-			ExecuteWidePush(grid, rightHalf, dir);
-			return;
-		}
-		}
-	}
-	else if (grid[pushedPos] == ']')
-	{
-		switch (dir)
-		{
-		case OrthDirection::Left:
-		{
-			vec2 nextPos(pushedPos.x - 1, pushedPos.y);
-			ExecuteWidePush(grid, nextPos, dir);
-			grid[nextPos] = ']';
-			return;
-		}
-		case OrthDirection::Right:
-		{
-			vec2 nextPos(pushedPos.x + 1, pushedPos.y);
-			ExecuteWidePush(grid, nextPos, dir);
-			grid[nextPos] = ']';
-			return;
-		}
-		case OrthDirection::Up:
-		{
-			vec2 leftHalf(pushedPos.x - 1, pushedPos.y);
-			vec2 nextRightPos(pushedPos.x, pushedPos.y - 1);
-			ExecuteWidePush(grid, nextRightPos, dir);
-			grid[nextRightPos] = ']';
-			grid[pushedPos] = '.';
-			ExecuteWidePush(grid, leftHalf, dir);
-			return;
-		}
-		case OrthDirection::Down:
-		{
-			vec2 leftHalf(pushedPos.x - 1, pushedPos.y);
-			vec2 nextRightPos(pushedPos.x, pushedPos.y + 1);
-			ExecuteWidePush(grid, nextRightPos, dir);
-			grid[nextRightPos] = ']';
-			grid[pushedPos] = '.';
-			ExecuteWidePush(grid, leftHalf, dir);
-			return;
-		}
-		}
+		bool isLeftHalf = (grid[pushedPos] == '[');
+		grid[pushedPos] = '.';
+		vec2 otherHalf = isLeftHalf ? vec2(pushedPos.x + 1, pushedPos.y) : vec2(pushedPos.x - 1, pushedPos.y);
+		ExecuteWidePush(grid, otherHalf, dir);
 	}
 }
 
@@ -264,7 +182,7 @@ int Day15::Solution1()
 	//ParseFile(gridInput, instructions, true);
 	Grid grid(gridInput);
 
-	vec2 robotPos = FindRobot(grid);
+	vec2 robotPos = grid.FindChar('@');
 	for (const std::string& instructionLine : instructions)
 	{
 		for (const char instruction : instructionLine)
@@ -288,10 +206,10 @@ int Day15::Solution1()
 	}
 
 	unsigned int totalGPS = 0;
-	// Ignore grid borders
-	for (unsigned int y = 1; y < grid.size() - 1; ++y)
+	// Ignore grid borders, they cannot contain boxes
+	for (unsigned int y = 1; y < grid.height() - 1; ++y)
 	{
-		for (unsigned int x = 1; x < grid.at(y).size() - 1; ++x)
+		for (unsigned int x = 1; x < grid.width() - 1; ++x)
 		{
 			vec2 pos(x, y);
 			if (grid[pos] == 'O')
@@ -306,14 +224,14 @@ int Day15::Solution1()
 int Day15::Solution2()
 {
 	std::vector<std::string> gridInput, instructions;
-	//ParseFileB(gridInput, instructions);
+	//ParseFileB(gridInput, instructions, true);
 	ParseFileB(gridInput, instructions);
 	Grid grid(gridInput);
 
-	Testing::DebugFile dbg(__FILE__);
-	dbg.OutputResultGrid(grid.grid);
+	/*Testing::DebugFile dbg(__FILE__);
+	dbg.OutputGrid(grid);*/
 
-	vec2 robotPos = FindRobot(grid);
+	vec2 robotPos = grid.FindChar('@');
 	for (const std::string& instructionLine : instructions)
 	{
 		for (const char instruction : instructionLine)
@@ -334,19 +252,18 @@ int Day15::Solution2()
 				break;
 			}
 			//dbg.Overwrite();
-			//dbg.OutputResultGrid(grid.grid);
+			//dbg.OutputGrid(grid.container);
 		}
 	}
-	dbg.OutputResultGrid(grid.grid);
+	//dbg.OutputGrid(grid);
 
 	unsigned int totalGPS = 0;
-	// Ignore grid borders
-	for (unsigned int y = 1; y < grid.size() - 1; ++y)
+	// Ignore grid borders, they cannot contain boxes
+	for (unsigned int y = 1; y < grid.height() - 1; ++y)
 	{
-		for (unsigned int x = 1; x < grid.at(y).size() - 1; ++x)
+		for (unsigned int x = 1; x < grid.width() - 1; ++x)
 		{
-			vec2 pos(x, y);
-			if (grid[pos] == '[')
+			if (grid[y][x] == '[')
 				totalGPS += 100 * y + x;
 		}
 	}

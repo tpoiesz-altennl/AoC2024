@@ -3,13 +3,27 @@
 
 #include <regex>
 
-std::vector<std::vector<vec2>> ParseFile(std::ifstream& file)
+struct ClawMachine
 {
-	std::vector<std::vector<vec2>> testCases;
+	vec2 ButtonA;
+	vec2 ButtonB;
+	vec2 Prize;
+
+	ClawMachine()
+	{ }
+
+	ClawMachine(vec2 a, vec2 b, vec2 prize)
+		: ButtonA(a), ButtonB(b), Prize(prize)
+	{ }
+};
+
+std::vector<ClawMachine> ParseFile(std::ifstream& file)
+{
+	std::vector<ClawMachine> testCases;
 	while (!file.eof())
 	{
 		std::string caseLine = "";
-		testCases.push_back(std::vector<vec2>());
+		std::vector<vec2> testCase;
 		for (unsigned int i = 0; i < 3; ++i)
 		{
 			std::getline(file, caseLine);
@@ -19,36 +33,50 @@ std::vector<std::vector<vec2>> ParseFile(std::ifstream& file)
 			int X = std::stoi(match[0].str());
 			std::regex_search(match.suffix().first, caseLine.cend(), match, findXY);
 			int Y = std::stoi(match[0].str());
-			testCases.back().push_back(vec2(X, Y));
+			testCase.push_back(vec2(X, Y));
 		}
+		testCases.push_back(ClawMachine(testCase[0], testCase[1], testCase[2]));
 		// Skip empty line between testcases
 		std::getline(file, caseLine);
 	}
 	return testCases;
 }
 
-std::vector<std::vector<vec2T<u64>>> ParseFileB(std::ifstream& file)
+struct ClawMachineB
 {
-	std::vector<std::vector<vec2>> testCases = ParseFile(file);
-	std::vector<std::vector<vec2T<u64>>> actualTestCases;
-	for (auto& testCase : testCases)
+	vec2 ButtonA;
+	vec2 ButtonB;
+	vec2T<u64> Prize;
+
+	ClawMachineB()
 	{
-		actualTestCases.push_back({ 
-			vec2T<u64>(testCase[0].x, testCase[0].y),
-			vec2T<u64>(testCase[1].x, testCase[1].y),
-			vec2T<u64>(static_cast<u64>(testCase[2].x) + 10000000000000, static_cast<u64>(testCase[2].y) + 10000000000000)
-			});
+	}
+
+	ClawMachineB(vec2 a, vec2 b, vec2T<u64> prize)
+		: ButtonA(a), ButtonB(b), Prize(prize)
+	{
+	}
+};
+
+std::vector<ClawMachineB> ParseFileB(std::ifstream& file)
+{
+	std::vector<ClawMachine> testCases = ParseFile(file);
+	std::vector<ClawMachineB> actualTestCases;
+	for (const auto& testCase : testCases)
+	{
+		actualTestCases.push_back(ClawMachineB(testCase.ButtonA, testCase.ButtonB,
+			vec2T<u64>(static_cast<u64>(testCase.Prize.x) + 10000000000000, static_cast<u64>(testCase.Prize.y) + 10000000000000)));
 	}
 	return actualTestCases;
 }
 
-bool BruteForce(const std::vector<vec2>& testCase, vec2& match)
+bool BruteForce(const ClawMachine& testCase, vec2& match)
 {
 	for (unsigned int a = 0; a <= 100; ++a)
 	{
 		for (unsigned int b = 0; b <= 100; ++b)
 		{
-			if (testCase[0] * a + testCase[1] * b == testCase[2])
+			if (testCase.ButtonA * a + testCase.ButtonB * b == testCase.Prize)
 			{
 				match = vec2(a, b);
 				return true;
@@ -61,7 +89,7 @@ bool BruteForce(const std::vector<vec2>& testCase, vec2& match)
 int Day13::Solution1ver1()
 {
 	std::ifstream file = FileUtil::OpenFile(__FILE__);
-	std::vector<std::vector<vec2>> testCases = ParseFile(file);
+	std::vector<ClawMachine> testCases = ParseFile(file);
 	file.close();
 
 	int totalCost = 0;
@@ -78,17 +106,14 @@ int Day13::Solution1ver1()
 	return 0;
 }
 
-bool isWhole(double num, double epsilon = 0.0001)
+bool SolveEquationSystem(const ClawMachine& testCase, vec2& solution)
 {
-	double rounded = std::floor(num);
-	return rounded == num || (rounded <= num + epsilon && rounded >= num - epsilon);
-}
-
-bool SolveEquationSystem(const std::vector<vec2>& testCase, vec2& solution)
-{
-	int x1 = testCase[0].x, y1 = testCase[0].y, x2 = testCase[1].x, y2 = testCase[1].y, xr = testCase[2].x, yr = testCase[2].y;
+	int x1 = testCase.ButtonA.x, y1 = testCase.ButtonA.y,
+		x2 = testCase.ButtonB.x, y2 = testCase.ButtonB.y,
+		xr = testCase.Prize.x, yr = testCase.Prize.y;
 	int denom = x1 * y2 - y1 * x2;
-	int aPart = y2 * xr - x2 * yr, bPart = x1 * yr - y1 * xr;
+	int aPart = y2 * xr - x2 * yr,
+		bPart = x1 * yr - y1 * xr;
 
 	if (denom == 0) // vectors are colinear
 	{
@@ -113,7 +138,7 @@ bool SolveEquationSystem(const std::vector<vec2>& testCase, vec2& solution)
 int Day13::Solution1ver2()
 {
 	std::ifstream file = FileUtil::OpenFile(__FILE__);
-	std::vector<std::vector<vec2>> testCases = ParseFile(file);
+	std::vector<ClawMachine> testCases = ParseFile(file);
 	file.close();
 
 	int totalCost = 0;
@@ -130,11 +155,14 @@ int Day13::Solution1ver2()
 	return 0;
 }
 
-bool SolveEquationSystemu64(const std::vector<vec2T<u64>>& testCase, vec2T<u64>& solution)
+bool SolveEquationSystemu64(const ClawMachineB& testCase, vec2T<u64>& solution)
 {
-	u64 x1 = testCase[0].x, y1 = testCase[0].y, x2 = testCase[1].x, y2 = testCase[1].y, xr = testCase[2].x, yr = testCase[2].y;
-	int denom = static_cast<int>(x1 * y2 - y1 * x2);
-	long long int aPart = y2 * xr - x2 * yr, bPart = x1 * yr - y1 * xr;
+	int x1 = testCase.ButtonA.x, y1 = testCase.ButtonA.y,
+		x2 = testCase.ButtonB.x, y2 = testCase.ButtonB.y;
+	u64 xr = testCase.Prize.x, yr = testCase.Prize.y;
+	int denom = x1 * y2 - y1 * x2;
+	long long int aPart = y2 * xr - x2 * yr,
+		bPart = x1 * yr - y1 * xr;
 
 	if (denom == 0) // vectors are colinear
 	{
@@ -159,7 +187,7 @@ bool SolveEquationSystemu64(const std::vector<vec2T<u64>>& testCase, vec2T<u64>&
 int Day13::Solution2()
 {
 	std::ifstream file = FileUtil::OpenFile(__FILE__);
-	std::vector<std::vector<vec2T<u64>>> testCases = ParseFileB(file);
+	std::vector<ClawMachineB> testCases = ParseFileB(file);
 	file.close();
 
 	u64 totalCost = 0;

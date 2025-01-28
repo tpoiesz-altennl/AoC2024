@@ -3,8 +3,8 @@
 
 struct File
 {
-	int fileNum;
-	int size;
+	unsigned int fileNum;
+	unsigned int size;
 
 	File() : fileNum(0), size(0)
 	{
@@ -18,7 +18,7 @@ struct File
 void OutputToDebug(Testing::DebugFile& dbg, const horizontal_vector<File>& fileList)
 {
 	std::string output = "";
-	for (int i = 0; i < fileList[0].size; ++i)
+	for (unsigned int i = 0; i < fileList[0].size; ++i)
 	{
 		output += "0|";
 	}
@@ -26,7 +26,7 @@ void OutputToDebug(Testing::DebugFile& dbg, const horizontal_vector<File>& fileL
 	{
 		if (fileList[i].fileNum > 0)
 		{
-			for (int j = 0; j < fileList[i].size; ++j)
+			for (unsigned int j = 0; j < fileList[i].size; ++j)
 			{
 				output += std::to_string(fileList[i].fileNum);
 				output += '|';
@@ -34,12 +34,12 @@ void OutputToDebug(Testing::DebugFile& dbg, const horizontal_vector<File>& fileL
 		}
 		else
 		{
-			for (int j = 0; j < fileList[i].size; ++j)
+			for (unsigned int j = 0; j < fileList[i].size; ++j)
 				output += '.';
 			output += '|';
 		}
 	}
-	dbg.OutputRule<std::string>(output);
+	dbg.OutputSomething<std::string>(output);
 }
 
 int Day9::Solution1()
@@ -53,9 +53,11 @@ int Day9::Solution1()
 	unsigned long long checkSum = 0;
 	while (frontIndex < backIndex)
 	{
+		// Even indices are for files, uneven ones for empty spaces
 		if (frontIndex % 2 == 0)
 		{
 			unsigned int fileNum = frontIndex / 2;
+			// The value of input[frontIndex] indicates how many files with value fileNum are at the "file location" at frontIndex
 			for (int i = 0; i < input[frontIndex]; ++i)
 			{
 				checkSum += fileNum * actualFileIndex++;
@@ -64,10 +66,12 @@ int Day9::Solution1()
 		}
 		else
 		{
+			// Keep moving files until the empty space is filled
 			while (input[frontIndex] > 0)
 			{
 				unsigned int fileNum = backIndex / 2;
-				int toSubtract = input[backIndex] - input[frontIndex] < 0 ? input[backIndex] : input[frontIndex];
+				// Determine how many files to move
+				int toSubtract = std::min(input[backIndex], input[frontIndex]);
 				for (int i = 0; i < toSubtract; ++i)
 				{
 					checkSum += fileNum * actualFileIndex++;
@@ -108,7 +112,7 @@ int Day9::Solution2()
 	{
 		if (i % 2 == 0)
 		{
-			files.push_back(File(static_cast<int>(i) / 2, input[i]));
+			files.push_back(File(static_cast<int>(i) / 2, input[i])); // Every other index is an empty space, so fileNum is half the index
 		}
 		else
 		{
@@ -120,18 +124,18 @@ int Day9::Solution2()
 	// input.size() - 1 is even, so this does not run indefinitely
 	for (unsigned int backIndex = static_cast<unsigned int>(input.size()) - 1; backIndex > 0; backIndex -= 2)
 	{
-		File toBeMoved = files[backIndex];
+		// Empty spaces are at uneven indices
 		for (unsigned int freeSpaceIndex = 1; freeSpaceIndex < backIndex; freeSpaceIndex += 2)
 		{
-			File emptySpace = files[freeSpaceIndex];
-			if (emptySpace.fileNum == 0 && emptySpace.size >= toBeMoved.size)
+			if (File emptySpace = files[freeSpaceIndex], toBeMoved = files[backIndex]; 
+				emptySpace.fileNum == 0 && emptySpace.size >= toBeMoved.size)
 			{
 				// Insert empty space indicators around moved file
 				// Starting with right after moved file, as to not invalidate freeSpaceIndex
 				files.insert(files.begin() + freeSpaceIndex + 1, File(0, emptySpace.size - toBeMoved.size));
 				files[freeSpaceIndex] = toBeMoved;
 				files.insert(files.begin() + freeSpaceIndex, File());
-				// Update backwards iterator
+				// Update backwards iterator to account for added empty space
 				backIndex += 2;
 				// Prettify for debug output
 				/*if (backIndex + 1 > files.size() - 1)
@@ -160,9 +164,9 @@ int Day9::Solution2()
 	{
 		if (f.fileNum > 0)
 		{
-			for (int i = 0; i < f.size; ++i)
+			for (unsigned int i = 0; i < f.size; ++i)
 			{
-				checkSum += static_cast<unsigned long long>(f.fileNum) * filePos++;
+				checkSum += f.fileNum * filePos++;
 			}
 		}
 		else

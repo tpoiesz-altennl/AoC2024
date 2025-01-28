@@ -31,9 +31,9 @@
 
 int main()
 {
-    u64 iter = 100;
-    int exit1 = Day5::Solution1();
-    //int exit2 = Day4::Solution1ver2();
+    unsigned int iter = 1000;
+    //Testing::TimeSolution(Day12::Solution2, iter);
+    int exit2 = Day16::Solution2();
     //int exit3 = Day4::Solution2();
-    return exit1 /*+ exit2 + exit3*/;
+    return 0;
 }

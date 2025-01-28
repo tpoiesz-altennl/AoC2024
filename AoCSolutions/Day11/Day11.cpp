@@ -57,11 +57,8 @@ void ApplyRuleset(std::vector<u64>& stones)
 	{
 		if (!ApplyRule1(stone))
 		{
-			u64 newStone;
-			if (ApplyRule2(stone, newStone))
-			{
+			if (u64 newStone = 0; ApplyRule2(stone, newStone))
 				newStones.push_back(newStone);
-			}
 			else
 				ApplyDefaultRule(stone);
 		}
@@ -69,22 +66,19 @@ void ApplyRuleset(std::vector<u64>& stones)
 	stones.insert(stones.end(), newStones.begin(), newStones.end());
 }
 
-int Day11::Solution1()
+int Day11::Solution1ver1()
 {
-	std::vector<u64> input = FileUtil::ReadInputIntoVec<u64>(__FILE__, true);
-	//std::vector<u64> input = FileUtil::ReadInputIntoVec<u64>(__FILE__);
-	horizontal_vector<u64> stones;
-	stones.resize(input.size());
-	std::move(input.begin(), input.end(), stones.begin());
+	//horizontal_vector<u64> stones = FileUtil::ReadInputIntoVec<u64>(__FILE__, true);
+	horizontal_vector<u64> stones = FileUtil::ReadInputIntoVec<u64>(__FILE__);
 
 	//Testing::DebugFile dbg(__FILE__);
-	//dbg.OutputRule(stones);
+	//dbg.OutputSomething(stones);
 
 	unsigned int iterations = 25;
 	for (unsigned int i = 0; i < iterations; ++i)
 	{
 		ApplyRuleset(stones);
-		//dbg.OutputRule(stones);
+		//dbg.OutputSomething(stones);
 	}
 
 	std::cout << stones.size();
@@ -97,11 +91,8 @@ std::vector<u64> ApplyRulesetToStone(u64 stone)
 	std::vector<u64> newStones;
 	if (!ApplyRule1(stone))
 	{
-		u64 newStone;
-		if (ApplyRule2(stone, newStone))
-		{
+		if (u64 newStone = 0; ApplyRule2(stone, newStone))
 			newStones.push_back(newStone);
-		}
 		else
 			ApplyDefaultRule(stone);
 	}
@@ -133,6 +124,24 @@ u64 BuildCostTable(cost_lookup_table<u64>& table, u64 entry, unsigned int recurs
 		it->second[recursionDepth - 1] = stonesCost;
 		return stonesCost;
 	}
+}
+
+int Day11::Solution1ver2()
+{
+	//std::vector<u64> input = FileUtil::ReadInputIntoVec<u64>(__FILE__, true);
+	std::vector<u64> input = FileUtil::ReadInputIntoVec<u64>(__FILE__);
+
+	unsigned int iterations = 25;
+	u64 totalCost = 0;
+	cost_lookup_table<u64> table;
+	for (u64 stone : input)
+	{
+		totalCost += BuildCostTable(table, stone, iterations, iterations);
+	}
+
+	std::cout << totalCost;
+
+	return 0;
 }
 
 int Day11::Solution2()

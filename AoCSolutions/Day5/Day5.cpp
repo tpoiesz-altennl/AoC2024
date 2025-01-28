@@ -29,7 +29,7 @@ int Day5::Solution1()
 	std::vector<horizontal_vector<int>> updates = FileUtil::SplitInputLines<int>(remainingLines, ',', remainingLines);
 
 	/*Testing::DebugFile dbg(__FILE__);
-	dbg.OutputRule<horizontal_vector<int>>(ruleset);
+	dbg.OutputSomething<horizontal_vector<int>>(ruleset);
 	dbg.OutputMatches<horizontal_vector<int>, std::unordered_map<int, horizontal_vector<int>>>(updates, &MatchToRuleset, true, ruleset);*/
 
 	int total = 0;

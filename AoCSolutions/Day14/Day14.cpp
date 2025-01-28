@@ -86,7 +86,7 @@ int Day14::Solution1()
 }
 #pragma warning(pop)
 
-std::vector<std::string> BuildGrid(std::vector<vec2>& robotPositions, bool isTestGrid = false)
+Grid BuildGrid(std::vector<vec2>& robotPositions, bool isTestGrid = false)
 {
 	std::sort(robotPositions.begin(), robotPositions.end(), [](const vec2& a, const vec2& b) -> bool {
 		return a.y < b.y || (a.y == b.y && a.x < b.x);
@@ -112,22 +112,22 @@ std::vector<std::string> BuildGrid(std::vector<vec2>& robotPositions, bool isTes
 	return grid;
 }
 
-bool MightBeChristmasTree(const std::vector<std::string>& grid)
+bool MightBeChristmasTree(const Grid& grid)
 {
-	unsigned int rowIdx = 0;
-	while (rowIdx < grid.size() - 2)
+	unsigned int peakY = 0;
+	while (peakY < grid.size() - 2)
 	{
-		size_t peakPos = grid[rowIdx].find('0');
-		while (peakPos != std::string::npos)
+		unsigned int peakX = static_cast<unsigned int>(grid.at(peakY).find('0'));
+		while (peakX != std::string::npos)
 		{
-			if (peakPos > 1 && peakPos < grid[1].size() - 2)
-				if (grid[rowIdx + 1][peakPos - 1] == '0' && grid[rowIdx + 1][peakPos + 1] == '0')
-					if (grid[rowIdx + 2][peakPos - 2] == '0' && grid[rowIdx + 2][peakPos + 2] == '0')
+			if (peakX > 1 && peakX < grid.width() - 2)
+				if (grid.at(peakX - 1, peakY + 1) == '0' && grid.at(peakX + 1, peakY + 1) == '0')
+					if (grid.at(peakX - 2, peakY + 2) == '0' && grid.at(peakX + 2, peakY + 2) == '0')
 						return true;
 
-			peakPos = grid[rowIdx].find('0', peakPos + 1);
+			peakX = static_cast<unsigned int>(grid.at(peakY).find('0', peakX + 1));
 		}
-		++rowIdx;
+		++peakY;
 	}
 	return false;
 }
@@ -148,12 +148,12 @@ int Day14::Solution2()
 			//positions[i] = GetRobotPosAtT(eq, t, true);
 			positions[i] = GetRobotPosAtT(eq, t, false);
 		}
-		//std::vector<std::string> grid = BuildGrid(positions, true);
-		std::vector<std::string> grid = BuildGrid(positions, false);
+		//Grid grid = BuildGrid(positions, true);
+		Grid grid = BuildGrid(positions, false);
 		if (MightBeChristmasTree(grid))
 		{
 			dbg.Overwrite();
-			dbg.OutputResultGrid(grid);
+			dbg.OutputGrid(grid);
 			__debugbreak();
 		}
 		std::cout << t << '\r';

@@ -75,12 +75,12 @@ unsigned int TryKeysOnLock(const LockOrKey& lock, container& keys, unsigned int 
 		}
 	}
 	/*Testing::DebugFile dbg(__FILE__);
-	dbg.OutputRule<LockOrKey>(lock);
-	dbg.OutputRule<char>(' ');
+	dbg.OutputSomething<LockOrKey>(lock);
+	dbg.OutputSomething<char>(' ');
 	for (unsigned int i = 0; i < keyIdx; ++i)
 	{
-		dbg.OutputRule<LockOrKey>(keys[i]);
-		//dbg.OutputRule<char>('\n');
+		dbg.OutputSomething<LockOrKey>(keys[i]);
+		//dbg.OutputSomething<char>('\n');
 	}
 	__debugbreak();*/
 	return static_cast<unsigned int>(keys.size()) - keyIdx;

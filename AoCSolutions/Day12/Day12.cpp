@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 
-bool ScanPatch(const Grid& grid, char toSearch, const vec2& pos, int& patchSize, int& numConnections, std::vector<vec2>& foundPositions)
+bool ScanPatch(const Grid& grid, char toSearch, vec2 pos, unsigned int& patchSize, unsigned int& numConnections, std::vector<vec2>& foundPositions)
 {
 	if (grid.at(pos) != toSearch)
 		return false;
@@ -16,30 +16,11 @@ bool ScanPatch(const Grid& grid, char toSearch, const vec2& pos, int& patchSize,
 	foundPositions.push_back(pos);
 	patchSize += 1;
 
-	auto getNextPos = [](const vec2& currPos, OrthDirection dir) -> vec2 {
-		switch (dir)
-		{
-		case OrthDirection::Up:
-			return vec2(currPos.x, currPos.y - 1);
-		case OrthDirection::Right:
-			return vec2(currPos.x + 1, currPos.y);
-		case OrthDirection::Down:
-			return vec2(currPos.x, currPos.y + 1);
-		case OrthDirection::Left:
-			return vec2(currPos.x - 1, currPos.y);
-		default:
-			return vec2(-1, -1);
-		}
-		};
-
 	OrthDirection dir = OrthDirection::Up;
 	for (unsigned int i = 0; i < 4; ++i, ++dir)
 	{
-		vec2 nextPos = getNextPos(pos, dir);
-		if (nextPos.x < 0 || nextPos.x >= grid.at(0).size() || nextPos.y < 0 || nextPos.y >= grid.size())
-			continue;
-
-		if (ScanPatch(grid, toSearch, nextPos, patchSize, numConnections, foundPositions))
+		vec2 nextPos = NextPos(pos, dir);
+		if (grid.IsValidPos(nextPos) && ScanPatch(grid, toSearch, nextPos, patchSize, numConnections, foundPositions))
 			numConnections += 1;
 	}
 
@@ -51,31 +32,31 @@ int Day12::Solution1ver1()
 	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
 
 	int totalCost = 0;
-	for (unsigned int y = 0; y < grid.size(); ++y)
+	for (unsigned int y = 0; y < grid.height(); ++y)
 	{
-		for (unsigned int x = 0; x < grid.at(0).size(); ++x)
+		for (unsigned int x = 0; x < grid.width(); ++x)
 		{
 			if (char c = grid.at(x, y); c != '.')
 			{
-				int patchSize = 0, numConnections = 0;
+				unsigned int patchSize = 0, numConnections = 0;
 				std::vector<vec2> foundPositions;
 				ScanPatch(grid, c, vec2(x, y), patchSize, numConnections, foundPositions);
 				for (const vec2& pos : foundPositions)
 				{
 					grid[pos] = '.';
 				}
-				int perimeter = patchSize * 4 - numConnections;
+				unsigned int perimeter = patchSize * 4 - numConnections;
 				totalCost += patchSize * perimeter;
 			}
 		}
 	}
 
-	//std::cout << totalCost << std::endl;
+	std::cout << totalCost << std::endl;
 
 	return 0;
 }
 
-bool ScanPatch2(const Grid& grid, char toSearch, const vec2& pos, int& patchSize, int& numConnections, 
+bool ScanPatch2(const Grid& grid, char toSearch, const vec2& pos, unsigned int& patchSize, unsigned int& numConnections, 
 	std::vector<vec2>& foundPositions, OrthDirection prevDir = OrthDirection::None)
 {
 	if (grid.at(pos) != toSearch)
@@ -87,52 +68,25 @@ bool ScanPatch2(const Grid& grid, char toSearch, const vec2& pos, int& patchSize
 	foundPositions.push_back(pos);
 	patchSize += 1;
 
-	auto getNextPos = [](const vec2& currPos, OrthDirection dir, OrthDirection& cameFromDir) -> vec2 {
-		switch (dir)
-		{
-		case OrthDirection::Up:
-			cameFromDir = OrthDirection::Down;
-			return vec2(currPos.x, currPos.y - 1);
-		case OrthDirection::Right:
-			cameFromDir = OrthDirection::Left;
-			return vec2(currPos.x + 1, currPos.y);
-		case OrthDirection::Down:
-			cameFromDir = OrthDirection::Up;
-			return vec2(currPos.x, currPos.y + 1);
-		case OrthDirection::Left:
-			cameFromDir = OrthDirection::Right;
-			return vec2(currPos.x - 1, currPos.y);
-		default:
-			return vec2(-1, -1);
-		}
-		};
-
-	OrthDirection nextDir = prevDir;
-	++nextDir;
-	OrthDirection nextIncoming;
 	if (prevDir == OrthDirection::None)
 	{
+		OrthDirection nextDir = prevDir + 1;
 		for (unsigned int i = 0; i < 4; ++i, ++nextDir)
 		{
-			
-			vec2 nextPos = getNextPos(pos, nextDir, nextIncoming);
-			if (nextPos.x < 0 || nextPos.x >= grid.at(0).size() || nextPos.y < 0 || nextPos.y >= grid.size())
-				continue;
-
-			if (ScanPatch2(grid, toSearch, nextPos, patchSize, numConnections, foundPositions, nextIncoming))
+			vec2 nextPos = NextPos(pos, nextDir);
+			OrthDirection nextIncoming = GetOppositeDir(nextDir);
+			if (grid.IsValidPos(nextPos) && ScanPatch2(grid, toSearch, nextPos, patchSize, numConnections, foundPositions, nextIncoming))
 				numConnections += 1;
 		}
 	}
 	else
 	{
 		numConnections += 1;
-		for (; nextDir != prevDir; ++nextDir)
+		for (OrthDirection nextDir = prevDir + 1; nextDir != prevDir; ++nextDir)
 		{
-			vec2 nextPos = getNextPos(pos, nextDir, nextIncoming);
-			if (nextPos.x < 0 || nextPos.x >= grid.at(0).size() || nextPos.y < 0 || nextPos.y >= grid.size())
-				continue;
-
-			if (ScanPatch2(grid, toSearch, nextPos, patchSize, numConnections, foundPositions, nextIncoming))
+			vec2 nextPos = NextPos(pos, nextDir);
+			OrthDirection nextIncoming = GetOppositeDir(nextDir);
+			if (grid.IsValidPos(nextPos) && ScanPatch2(grid, toSearch, nextPos, patchSize, numConnections, foundPositions, nextIncoming))
 				numConnections += 1;
 		}
 	}
@@ -145,26 +99,26 @@ int Day12::Solution1ver2()
 	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
 
 	int totalCost = 0;
-	for (unsigned int y = 0; y < grid.size(); ++y)
+	for (unsigned int y = 0; y < grid.height(); ++y)
 	{
-		for (unsigned int x = 0; x < grid.at(0).size(); ++x)
+		for (unsigned int x = 0; x < grid.width(); ++x)
 		{
 			if (char c = grid.at(x, y); c != '.')
 			{
-				int patchSize = 0, numConnections = 0;
+				unsigned int patchSize = 0, numConnections = 0;
 				std::vector<vec2> foundPositions;
 				ScanPatch2(grid, c, vec2(x, y), patchSize, numConnections, foundPositions);
 				for (const vec2& pos : foundPositions)
 				{
 					grid[pos] = '.';
 				}
-				int perimeter = patchSize * 4 - numConnections;
+				unsigned int perimeter = patchSize * 4 - numConnections;
 				totalCost += patchSize * perimeter;
 			}
 		}
 	}
 
-	//std::cout << totalCost << std::endl;
+	std::cout << totalCost << std::endl;
 
 	return 0;
 }
@@ -219,7 +173,7 @@ int DetermineNumEdges(std::vector<vec2>& positions, Testing::DebugFile* dbg = nu
 		};
 
 	int numEdges = 0;
-	// Determine vertical edges, then mirror shape along diagonal axis and determine horizontal edges
+	// Determine vertical edges, then mirror shape along diagonal axis and determine horizontal edges; we're using i as a bool
 	for (unsigned int i = 0; i < 2; ++i)
 	{
 		std::vector<std::vector<vec2>> shape = BuildShape(positions, i);
@@ -270,12 +224,12 @@ int DetermineNumEdges(std::vector<vec2>& positions, Testing::DebugFile* dbg = nu
 				int minY = shape[0][0].y;
 				int maxY = shape[shape.size() - 1][0].y;
 
-				for (int i = 0; i <= maxY - minY; ++i)
+				for (int y = 0; y <= maxY - minY; ++y)
 				{
 					std::string row = "";
-					for (int j = minX; j <= maxX; ++j)
+					for (int x = minX; x <= maxX; ++x)
 					{
-						if (std::find(shape[i].begin(), shape[i].end(), vec2(j, minY + i)) != shape[i].end())
+						if (std::find(shape[y].begin(), shape[y].end(), vec2(x, minY + y)) != shape[y].end())
 							row += 'O';
 						else
 							row += '.';
@@ -290,12 +244,12 @@ int DetermineNumEdges(std::vector<vec2>& positions, Testing::DebugFile* dbg = nu
 				int minY = std::min_element(positions.begin(), positions.end(), [](const vec2& a, const vec2& b) { return a.y < b.y;})->y;
 				int maxY = std::max_element(positions.begin(), positions.end(), [](const vec2& a, const vec2& b) { return a.y < b.y;})->y;
 
-				for (int i = 0; i <= maxX - minX; ++i)
+				for (int x = 0; x <= maxX - minX; ++x)
 				{
 					std::string row = "";
-					for (int j = minY; j <= maxY; ++j)
+					for (int y = minY; y <= maxY; ++y)
 					{
-						if (std::find(shape[i].begin(), shape[i].end(), vec2(minX + i, j)) != shape[i].end())
+						if (std::find(shape[x].begin(), shape[x].end(), vec2(minX + x, y)) != shape[x].end())
 							row += 'O';
 						else
 							row += '.';
@@ -303,7 +257,7 @@ int DetermineNumEdges(std::vector<vec2>& positions, Testing::DebugFile* dbg = nu
 					debugShape.push_back(row);
 				}
 			}
-			dbg->OutputResultGrid<std::string>(debugShape);
+			dbg->OutputGrid(debugShape);
 			__debugbreak();
 		}
 	}
@@ -316,16 +270,16 @@ int Day12::Solution2()
 	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
 
 	int totalCost = 0;
-	Testing::DebugFile dbg(__FILE__);
-	for (unsigned int y = 0; y < grid.size(); ++y)
+	//Testing::DebugFile dbg(__FILE__);
+	for (unsigned int y = 0; y < grid.height(); ++y)
 	{
-		for (unsigned int x = 0; x < grid.at(0).size(); ++x)
+		for (unsigned int x = 0; x < grid.width(); ++x)
 		{
 			if (char c = grid.at(x, y); c != '.')
 			{
-				int patchSize = 0, dummy = 0;
+				unsigned int patchSize = 0, dummy = 0;
 				std::vector<vec2> foundPositions;
-				ScanPatch(grid, c, vec2(x, y), patchSize, dummy, foundPositions);
+				ScanPatch2(grid, c, vec2(x, y), patchSize, dummy, foundPositions);
 				int numEdges = DetermineNumEdges(foundPositions/*, &dbg*/);
 				for (const vec2& pos : foundPositions)
 				{

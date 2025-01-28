@@ -21,6 +21,12 @@ public:
 	horizontal_vector(std::initializer_list<T> ilist)
 		: std::vector<T>(ilist)
 	{ }
+	horizontal_vector(const std::vector<T>& copyFrom)
+		: std::vector<T>(copyFrom)
+	{ }
+	horizontal_vector(std::vector<T>&& moveFrom)
+		: std::vector<T>(moveFrom)
+	{ }
 };
 
 template <typename T>
@@ -94,355 +100,6 @@ public:
 	auto cend() { return Table.cend(); }
 	size_t erase(const Key elem) { return Table.erase(elem); }
 };
-#pragma endregion
-
-#pragma region fileUtil
-class FileUtil
-{
-public:
-	static std::ifstream OpenFile(std::string callingLocation, bool isTestFile = false)
-	{
-		std::string fileName = (isTestFile ? "/TestFile.txt" : "/InputFile.txt");
-		std::ifstream file(MakeFolder(callingLocation) + fileName);
-		if (!file)
-		{
-			std::cout << "Oh no!\n";
-		}
-		return file;
-	}
-
-	template<typename T>
-	static std::vector<T> ReadInputIntoVec(std::string callingLocation, bool isTestFile = false)
-	{
-		std::ifstream file = OpenFile(callingLocation, isTestFile);
-		if (!file)
-		{
-			file.close();
-			return std::vector<T>();
-		}
-
-		std::vector<T> ret;
-		T temp;
-		while (file >> temp)
-		{
-			ret.push_back(temp);
-		}
-		file.close();
-
-		return ret;
-	}
-
-	template <typename T1, typename T2>
-	static bool MakeMapEntryFromLine(const std::string& line, std::pair<T1, T2>& output, const char separator = NULL)
-	{
-		T1 tempKey;
-		T2 tempVal;
-		if (separator && !line.empty())
-		{
-			size_t sepPos = line.find(separator);
-			if (sepPos != std::string::npos)
-			{
-				std::stringstream ss(line.substr(0, sepPos));
-				ss >> tempKey;
-				std::stringstream ss2(line.substr(sepPos + 1, line.size() - sepPos));
-				ss2 >> tempVal;
-
-				output = std::make_pair(tempKey, tempVal);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else if (!line.empty())
-		{
-			std::stringstream ss(line);
-			ss >> tempKey >> tempVal;
-			output = std::make_pair(tempKey, tempVal);
-		}
-		else
-			return false;
-
-		return true;
-	}
-
-	template <typename T1, typename T2>
-	static std::unordered_map<T1, horizontal_vector<T2>> ReadInputIntoLookupTable(std::string callingLocation,
-		std::vector<std::string>& incompatibleLines, char separator = NULL, bool isTestFile = false)
-	{
-		std::ifstream file = OpenFile(callingLocation, isTestFile);
-		if (!file)
-		{
-			file.close();
-			return std::unordered_map<T1, horizontal_vector<T2>>();
-		}
-
-		std::unordered_map<T1, horizontal_vector<T2>> ret;
-
-		std::string line;
-		while (std::getline(file, line))
-		{
-			std::pair<T1, T2> entry;
-			if (MakeMapEntryFromLine(line, entry, separator))
-			{
-				if (auto it = ret.find(entry.first); it != ret.end())
-				{
-					(*it).second.push_back(entry.second);
-				}
-				else
-				{
-					horizontal_vector<T2> tempVec;
-					tempVec.push_back(entry.second);
-					ret.emplace(std::make_pair(entry.first, tempVec));
-				}
-			}
-			else
-				incompatibleLines.push_back(line);
-		}
-
-		file.close();
-		return ret;
-	}
-
-	static std::string MakeFolder(const std::string& filepath)
-	{
-		size_t lastSep, secLastSep;
-		lastSep = filepath.rfind('\\');
-		secLastSep = filepath.rfind('\\', lastSep - 1) + 1;
-		return filepath.substr(secLastSep, lastSep - secLastSep);
-	}
-
-	template<typename T>
-	static std::vector<horizontal_vector<T>> SplitInputLines(const std::vector<std::string>& input, const char separator,
-		std::vector<std::string>& incompatibleLines)
-	{
-		std::vector<horizontal_vector<T>> ret;
-		for (const std::string& s : input)
-		{
-			size_t pos = s.find(separator);
-			if (pos == std::string::npos)
-				incompatibleLines.push_back(s);
-			else
-			{
-				size_t startOfElem = 0;
-				horizontal_vector<T> temp;
-				do
-				{
-					std::stringstream ss(s.substr(startOfElem, pos - startOfElem));
-					T elem;
-					ss >> elem;
-					temp.push_back(elem);
-					startOfElem = pos + 1;
-					pos = s.find(separator, pos + 1);
-				} while (startOfElem != 0); // StartOfElem will be 0 again after parsing the elem from the last separator to string::npos
-				ret.push_back(temp);
-			}
-		}
-
-		return ret;
-	}
-
-	static horizontal_vector<int> ParseFileCharByChar(std::string callingLocation, bool isTestFile = false)
-	{
-		std::ifstream file = OpenFile(callingLocation, isTestFile);
-		if (!file)
-		{
-			file.close();
-			return horizontal_vector<int>();
-		}
-
-		horizontal_vector<int> ret;
-		char c;
-		while (file >> c)
-		{
-			ret.push_back(c - '0');
-		}
-
-		file.close();
-		return ret;
-	}
-};
-#pragma endregion
-
-#pragma region debugUtil
-class Testing
-{
-public:
-	class DebugFile
-	{
-	public:
-		DebugFile(const std::string callingLocation)
-		{
-			m_Address = FileUtil::MakeFolder(callingLocation) + "/OutputFile.txt";
-			m_File = std::ofstream(m_Address);
-		}
-		~DebugFile()
-		{
-			m_File.close();
-		}
-
-		template<typename T, typename... Args>
-		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&, Args...)> conditional,
-			bool matchConditional, Args... argsForConditional)
-		{
-			if (!m_File)
-			{
-				std::cout << "Oh no!\n";
-				return;
-			}
-
-			int caseNum = 0;
-			for (const T& testCase : testCases)
-			{
-				++caseNum;
-				if (conditional(testCase, argsForConditional...) == matchConditional)
-				{
-					m_File << caseNum << '\t' << testCase << std::endl;
-				}
-			}
-			m_File.flush();
-		}
-
-		template<typename T>
-		void OutputRule(const T& rule)
-		{
-			if (!m_File)
-			{
-				std::cout << "Oh no!\n";
-				return;
-			}
-
-			m_File << rule << '\n';
-			m_File.flush();
-		}
-
-		template<typename T>
-		void OutputResultGrid(const std::vector<T>& grid)
-		{
-			if (!m_File)
-			{
-				std::cout << "Oh no!\n";
-				return;
-			}
-
-			for (const T& t : grid)
-			{
-				m_File << t << '\n';
-			}
-			m_File.flush();
-		}
-
-		// Specialisation for no Args...
-		template<typename T>
-		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&)> conditional,
-			bool matchConditional)
-		{
-			if (!m_File)
-			{
-				std::cout << "Oh no!\n";
-				return;
-			}
-
-			int caseNum = 0;
-			for (const T& testCase : testCases)
-			{
-				++caseNum;
-				if (conditional(testCase) == matchConditional)
-				{
-					m_File << caseNum << '\t' << testCase << std::endl;
-				}
-			}
-		}
-
-		void Overwrite()
-		{
-			if (!m_File)
-			{
-				std::cout << "Oh no!\n";
-				return;
-			}
-
-			m_File.close();
-			m_File = std::ofstream(m_Address);
-		}
-
-	private:
-		std::ofstream m_File;
-		std::string m_Address;
-	};
-
-	static void TimeSolution(std::function<int()> solution, unsigned long long numIterations)
-	{
-		double avgDuration = 0.;
-		for (int i = 0; i < numIterations; ++i)
-		{
-			auto t1 = std::chrono::steady_clock::now();
-			int exitCode = solution();
-			auto t2 = std::chrono::steady_clock::now();
-			avgDuration += std::chrono::duration<double>(t2 - t1).count();
-			if (exitCode)
-				exit(exitCode);
-		}
-		avgDuration /= numIterations;
-
-		std::cout << '\n' << avgDuration << '\n';
-	}
-};
-#pragma endregion
-
-#pragma region IOoperators
-template<typename T>
-std::ostream& operator<<(std::ostream& stream, const std::vector<T>& operand)
-{
-	for (const T& elem : operand)
-	{
-		stream << elem << '\n';
-	}
-	return stream;
-}
-
-template<typename T>
-std::istream& operator>>(std::istream& stream, std::vector<T>& operand)
-{
-	operand.clear();
-	std::string str = "";
-	std::getline(stream, str);
-	std::stringstream ss(str);
-	T temp;
-	while (ss >> temp)
-	{
-		operand.push_back(temp);
-	}
-
-	return stream;
-}
-
-template<typename T1, typename T2>
-std::ostream& operator<<(std::ostream& stream, const std::pair<T1, T2>& operand)
-{
-	stream << operand.first << ": " << operand.second;
-	return stream;
-}
-
-template<typename T1, typename T2>
-std::ostream& operator<<(std::ostream& stream, const std::unordered_map<T1, T2>& operand)
-{
-	for (const auto& pair : operand)
-	{
-		stream << pair;
-	}
-	return stream;
-}
-
-template<typename T>
-std::ostream& operator<<(std::ostream& stream, horizontal_vector<T> operand)
-{
-	for (const T& elem : operand)
-	{
-		stream << elem << ' ';
-	}
-	return stream;
-}
 #pragma endregion
 
 #pragma region usefulStructs
@@ -641,54 +298,73 @@ std::ostream& operator<<(std::ostream& stream, vec2T<T>& operand)
 
 struct Grid
 {
-	std::vector<std::string> grid;
+	std::vector<std::string> container;
 
-	Grid(const std::vector<std::string>& input) : grid(input)
-	{ }
+	Grid() : container(std::vector<std::string>())
+	{
+	}
 
-	Grid(const Grid& other) : grid(other.grid)
-	{ }
+	Grid(const std::vector<std::string>& input) : container(input)
+	{
+	}
+
+	Grid(const Grid& other) : container(other.container)
+	{
+	}
 
 	char& operator[](const vec2& index)
 	{
-		return grid[index.y][index.x];
+		return container[index.y][index.x];
 	}
 
 	std::string& operator[](const int y)
 	{
-		return grid[y];
+		return container[y];
 	}
 
 	char at(const vec2& index) const
 	{
-		return grid[index.y][index.x];
+		return container[index.y][index.x];
 	}
 
 	char at(const int x, const int y) const
 	{
-		return grid[y][x];
+		return container[y][x];
 	}
 
 	const std::string& at(const int y) const
 	{
-		return grid[y];
+		return container[y];
 	}
 
 	size_t size() const
 	{
-		return grid.size();
+		return container.size();
+	}
+
+	size_t height() const
+	{
+		return container.size();
+	}
+
+	size_t width() const
+	{
+		if (height())
+			return container[0].size();
+		else
+			return 0;
 	}
 
 	bool IsValidPos(const vec2& pos) const
 	{
-		return pos.y >= 0 && pos.y < size() && pos.x >= 0 && pos.x < grid[0].size();
+		return pos.y >= 0 && pos.y < height() && pos.x >= 0 && pos.x < width();
 	}
 
 	vec2 FindChar(const char c) const
 	{
-		for (unsigned int y = 0; y < size(); ++y)
+		for (unsigned int y = 0; y < height(); ++y)
 		{
-			for (unsigned int x = 0; x < at(y).size(); ++x)
+			for (unsigned int x = 0; x < width(); ++x)
 			{
 				vec2 pos(x, y);
 				if (at(pos) == c)
@@ -697,14 +373,409 @@ struct Grid
 		}
 		return vec2(-1, -1);
 	}
-	
+
+	std::vector<vec2> FindAll(const char val)
+	{
+		std::vector<vec2> ret;
+		for (unsigned int y = 0; y < height(); ++y)
+		{
+			for (unsigned int x = 0; x < width(); ++x)
+			{
+				if (at(x, y) == val)
+				{
+					ret.push_back(vec2(x, y));
+				}
+			}
+		}
+		return ret;
+	}
+
 	// For range-based for-loops
-	std::vector<std::string>::const_iterator begin() const { return grid.begin(); }
-	std::vector<std::string>::const_iterator end() const { return grid.end(); }
-	std::vector<std::string>::const_iterator cbegin() const { return grid.cbegin(); }
-	std::vector<std::string>::const_iterator cend() const { return grid.cend(); }
+	std::vector<std::string>::const_iterator begin() const { return container.begin(); }
+	std::vector<std::string>::const_iterator end() const { return container.end(); }
+	std::vector<std::string>::const_iterator cbegin() const { return container.cbegin(); }
+	std::vector<std::string>::const_iterator cend() const { return container.cend(); }
 };
 
 vec2 NextPos(const vec2& currPos, OrthDirection dir);
 vec2 NextPos(const vec2& currPos, Direction dir);
 #pragma endregion
+
+#pragma region fileUtil
+class FileUtil
+{
+public:
+	static std::ifstream OpenFile(std::string callingLocation, bool isTestFile = false)
+	{
+		std::string fileName = (isTestFile ? "/TestFile.txt" : "/InputFile.txt");
+		std::ifstream file(MakeFolder(callingLocation) + fileName);
+		if (!file)
+		{
+			file.close();
+			std::cout << "Oh no!\n";
+		}
+		return file;
+	}
+
+	template<typename T>
+	static std::vector<T> ReadInputIntoVec(std::string callingLocation, bool isTestFile = false)
+	{
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
+		if (!file)
+		{
+			file.close();
+			return std::vector<T>();
+		}
+
+		std::vector<T> ret;
+		T temp;
+		while (file >> temp)
+		{
+			ret.push_back(temp);
+		}
+		file.close();
+
+		return ret;
+	}
+
+	template <typename T1, typename T2>
+	static bool MakeMapEntryFromLine(const std::string& line, std::pair<T1, T2>& output, const char separator = 0)
+	{
+		T1 tempKey;
+		T2 tempVal;
+		if (separator && !line.empty())
+		{
+			size_t sepPos = line.find(separator);
+			if (sepPos != std::string::npos)
+			{
+				std::stringstream ss(line.substr(0, sepPos));
+				ss >> tempKey;
+				std::stringstream ss2(line.substr(sepPos + 1, line.size() - sepPos));
+				ss2 >> tempVal;
+
+				output = std::make_pair(tempKey, tempVal);
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else if (!line.empty())
+		{
+			std::stringstream ss(line);
+			ss >> tempKey >> tempVal;
+			output = std::make_pair(tempKey, tempVal);
+		}
+		else
+			return false;
+
+		return true;
+	}
+
+	// Reads input file into unordered map, where each key can point to multiple values
+	template <typename T1, typename T2>
+	static std::unordered_map<T1, horizontal_vector<T2>> ReadInputIntoLookupTable(std::string callingLocation,
+		std::vector<std::string>& incompatibleLines, char separator = 0, bool isTestFile = false)
+	{
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
+		if (!file)
+		{
+			file.close();
+			return std::unordered_map<T1, horizontal_vector<T2>>();
+		}
+
+		std::unordered_map<T1, horizontal_vector<T2>> ret;
+
+		std::string line;
+		while (std::getline(file, line))
+		{
+			std::pair<T1, T2> entry;
+			if (MakeMapEntryFromLine(line, entry, separator))
+			{
+				if (auto it = ret.find(entry.first); it != ret.end())
+				{
+					it->second.push_back(entry.second);
+				}
+				else
+				{
+					horizontal_vector<T2> tempVec;
+					tempVec.push_back(entry.second);
+					ret.emplace(std::make_pair(entry.first, tempVec));
+				}
+			}
+			else
+				incompatibleLines.push_back(line);
+		}
+
+		file.close();
+		return ret;
+	}
+
+	// Reads input file into unordered map; non-unique keys will be put into incompatible lines
+	template <typename T1, typename T2>
+	static std::unordered_map<T1, T2> ReadInputIntoMap(std::string callingLocation,
+		std::vector<std::string>& incompatibleLines, char separator = 0, bool isTestFile = false)
+	{
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
+		if (!file)
+		{
+			file.close();
+			return std::unordered_map<T1, T2>();
+		}
+
+		std::unordered_map<T1, T2> ret;
+
+		std::string line;
+		while (std::getline(file, line))
+		{
+			std::pair<T1, T2> entry;
+			// If cannot make entry or entry.key already exists
+			if (!MakeMapEntryFromLine(line, entry, separator) || !ret.emplace(entry).second)
+				incompatibleLines.push_back(line);
+		}
+
+		file.close();
+		return ret;
+	}
+
+	static std::string MakeFolder(const std::string& filepath)
+	{
+		size_t lastSep, secLastSep;
+		lastSep = filepath.rfind('\\');
+		secLastSep = filepath.rfind('\\', lastSep - 1) + 1;
+		return filepath.substr(secLastSep, lastSep - secLastSep);
+	}
+
+	template<typename T>
+	static std::vector<horizontal_vector<T>> SplitInputLines(const std::vector<std::string>& input, const char separator,
+		std::vector<std::string>& incompatibleLines)
+	{
+		std::vector<horizontal_vector<T>> ret;
+		for (const std::string& s : input)
+		{
+			size_t pos = s.find(separator);
+			if (pos == std::string::npos)
+				incompatibleLines.push_back(s);
+			else
+			{
+				size_t startOfElem = 0;
+				horizontal_vector<T> temp;
+				do
+				{
+					std::stringstream ss(s.substr(startOfElem, pos - startOfElem));
+					T elem;
+					ss >> elem;
+					temp.push_back(elem);
+					startOfElem = pos + 1;
+					pos = s.find(separator, pos + 1);
+				} while (startOfElem != 0); // StartOfElem will be 0 again after parsing the elem from the last separator to string::npos
+				ret.push_back(temp);
+			}
+		}
+
+		return ret;
+	}
+
+	static horizontal_vector<int> ParseFileCharByChar(std::string callingLocation, bool isTestFile = false)
+	{
+		std::ifstream file = OpenFile(callingLocation, isTestFile);
+		if (!file)
+		{
+			file.close();
+			return horizontal_vector<int>();
+		}
+
+		horizontal_vector<int> ret;
+		char c;
+		while (file >> c)
+		{
+			ret.push_back(c - '0');
+		}
+
+		file.close();
+		return ret;
+	}
+};
+#pragma endregion
+
+#pragma region debugUtil
+class Testing
+{
+public:
+	class DebugFile
+	{
+	public:
+		DebugFile(const std::string callingLocation)
+		{
+			m_Address = FileUtil::MakeFolder(callingLocation) + "/OutputFile.txt";
+			m_File = std::ofstream(m_Address);
+		}
+		~DebugFile()
+		{
+			m_File.close();
+		}
+
+		template<typename T, typename... Args>
+		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&, Args...)> conditional,
+			bool matchConditional, Args... argsForConditional)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			int caseNum = 0;
+			for (const T& testCase : testCases)
+			{
+				++caseNum;
+				if (conditional(testCase, argsForConditional...) == matchConditional)
+				{
+					m_File << caseNum << '\t' << testCase << std::endl;
+				}
+			}
+			m_File.flush();
+		}
+
+		// Specialisation for no Args...
+		template<typename T>
+		void OutputMatches(const std::vector<T>& testCases, std::function<bool(const T&)> conditional,
+			bool matchConditional)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			int caseNum = 0;
+			for (const T& testCase : testCases)
+			{
+				++caseNum;
+				if (conditional(testCase) == matchConditional)
+				{
+					m_File << caseNum << '\t' << testCase << std::endl;
+				}
+			}
+		}
+
+		template<typename T>
+		void OutputSomething(const T& thing)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			m_File << thing << '\n';
+			m_File.flush();
+		}
+
+		void OutputGrid(const Grid& grid)
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			for (const std::string& s : grid)
+			{
+				m_File << s << '\n';
+			}
+			m_File.flush();
+		}
+
+		void Overwrite()
+		{
+			if (!m_File)
+			{
+				std::cout << "Oh no!\n";
+				return;
+			}
+
+			m_File.close();
+			m_File = std::ofstream(m_Address);
+		}
+
+	private:
+		std::ofstream m_File;
+		std::string m_Address;
+	};
+
+	static void TimeSolution(std::function<int()> solution, unsigned int numIterations)
+	{
+		double avgDuration = 0.;
+		for (unsigned int i = 0; i < numIterations; ++i)
+		{
+			auto t1 = std::chrono::steady_clock::now();
+			int exitCode = solution();
+			if (exitCode)
+				exit(exitCode);
+			auto t2 = std::chrono::steady_clock::now();
+			avgDuration += std::chrono::duration<double>(t2 - t1).count();
+		}
+		avgDuration /= numIterations;
+
+		std::cout << '\n' << avgDuration << '\n';
+	}
+};
+#pragma endregion
+
+#pragma region IOoperators
+template<typename T>
+std::ostream& operator<<(std::ostream& stream, const std::vector<T>& operand)
+{
+	for (const T& elem : operand)
+	{
+		stream << elem << '\n';
+	}
+	return stream;
+}
+
+template<typename T>
+std::istream& operator>>(std::istream& stream, std::vector<T>& operand)
+{
+	operand.clear();
+	std::string str = "";
+	std::getline(stream, str);
+	std::stringstream ss(str);
+	T temp;
+	while (ss >> temp)
+	{
+		operand.push_back(temp);
+	}
+
+	return stream;
+}
+
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& stream, const std::pair<T1, T2>& operand)
+{
+	stream << operand.first << ": " << operand.second;
+	return stream;
+}
+
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& stream, const std::unordered_map<T1, T2>& operand)
+{
+	for (const auto& pair : operand)
+	{
+		stream << pair;
+	}
+	return stream;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& stream, horizontal_vector<T> operand)
+{
+	for (const T& elem : operand)
+	{
+		stream << elem << ' ';
+	}
+	return stream;
+}
+#pragma endregion
+
+

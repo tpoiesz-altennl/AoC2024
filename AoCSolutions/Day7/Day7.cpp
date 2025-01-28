@@ -26,7 +26,7 @@ u64 concat(u64 a, u64 b)
 	return std::stoull(ss.str());
 }
 
-u64 ApplyOperators(horizontal_vector<u64> values, 
+u64 ApplyOperators(const horizontal_vector<u64>& values, 
 	const std::vector<opSig>& operators)
 {
 	u64 total = values[0];
@@ -37,8 +37,7 @@ u64 ApplyOperators(horizontal_vector<u64> values,
 	return total;
 }
 
-bool Recurse(std::vector<opSig> operators,
-	const std::vector<opSig>& possibleOperators,
+bool Recurse(std::vector<opSig> operators, const std::vector<opSig>& possibleOperators,
 	const horizontal_vector<u64>& values, const u64 targetVal, unsigned int m, int n)
 {
 	if (n < 0)
@@ -70,64 +69,52 @@ bool TryEverything(const std::pair<u64, horizontal_vector<u64>>& testCase,
 int Day7::Solution1()
 {
 	std::vector<std::string> remainingLines;
-	std::unordered_map<u64, horizontal_vector<horizontal_vector<u64>>> testCases = 
-		FileUtil::ReadInputIntoLookupTable<u64, horizontal_vector<u64>>(__FILE__, remainingLines, ':');
+	std::unordered_map<u64, horizontal_vector<u64>> testCases = 
+		FileUtil::ReadInputIntoMap<u64, horizontal_vector<u64>>(__FILE__, remainingLines, ':');
 	/*std::unordered_map<int, horizontal_vector<horizontal_vector<int>>> testCases =
 		FileUtil::ReadInputIntoLookupTable<int, horizontal_vector<int>>(__FILE__, remainingLines, ':', true);*/
 	std::vector<opSig> possibleOperators{ &mul, &add };
 
 	u64 total = 0;
-	Testing::DebugFile dbg(__FILE__);
 	for (const auto& testCaseSet : testCases)
 	{
-		for (const horizontal_vector<u64>& input : testCaseSet.second)
+		const horizontal_vector<u64>& input = testCaseSet.second;
+
+		std::vector<opSig> bestOperators;
+		// We need one fewer operator than the number of numbers in input
+		for (unsigned int i = 0; i < input.size() - 1; ++i)
 		{
-			std::vector<opSig> operators;
-			for (unsigned int i = 0; i < input.size() - 1; ++i) // We need one fewer operator than the number of numbers in input
-			{
-				// Build the operator set that yields the highest value
-				if (i == 0)
-				{
-					if (input[i] < 2 || input[i + 1] < 2)
-						operators.push_back(&add);
-					else
-						operators.push_back(&mul);
-				}
-				else
-				{
-					if (input[i + 1] < 2)
-						operators.push_back(&add);
-					else
-						operators.push_back(&mul);
-				}
-			}
-			// Optimisation: if applying the best set of operators yields too low a value, no operator modifications are going to get us there
-			u64 bestSet = ApplyOperators(input, operators);
-			if (bestSet == testCaseSet.first)
-			{
-				total += testCaseSet.first;
-			}
-			else if (bestSet > testCaseSet.first)
-			{
-				std::pair<u64, horizontal_vector<u64>> testCase(testCaseSet.first, input);
-				if (TryEverything(testCase, operators, possibleOperators))
-				{
-					total += testCaseSet.first;
-				}
-				/*else
-				{
-					dbg.OutputRule<std::pair<int, horizontal_vector<int>>>(testCase);
-				}*/
-			 }
+			// Build the operator set that yields the highest value
+			if ((i == 0 && input[i] < 2) || input[i + 1] < 2)
+				bestOperators.push_back(&add);
 			else
-			{
-				std::pair<u64, horizontal_vector<u64>> testCase(testCaseSet.first, input);
-				dbg.OutputRule<std::pair<u64, horizontal_vector<u64>>>(testCase);
-			}
+				bestOperators.push_back(&mul);
 		}
+		// Optimisation: if applying the best set of operators yields too low a value,
+		// no operator modifications are going to get us there
+		u64 bestResult = ApplyOperators(input, bestOperators);
+
+		std::vector<opSig> worstOperators;
+		for (unsigned int i = 0; i < input.size() - 1; ++i)
+		{
+			// Build the operator set that yields the lowest value
+			if ((i == 0 && input[i] < 2) || input[i + 1] < 2)
+				worstOperators.push_back(&mul);
+			else
+				worstOperators.push_back(&add);
+		}
+		// Optimisation: if applying the worst set of operators yields too high a value,
+		// no operator modifications are going to get us there
+		u64 worstResult = ApplyOperators(input, worstOperators);
+
+		if (bestResult == testCaseSet.first || worstResult == testCaseSet.first)
+			total += testCaseSet.first;
+		else if (bestResult > testCaseSet.first && worstResult < testCaseSet.first
+			&& TryEverything(testCaseSet, bestOperators, possibleOperators))
+			total += testCaseSet.first;
 	}
 
-	std::cout << total;
+	std::cout << total << std::endl;
 
 	return 0;
 }
@@ -135,47 +122,47 @@ int Day7::Solution1()
 int Day7::Solution2()
 {
 	std::vector<std::string> remainingLines;
-	std::unordered_map<u64, horizontal_vector<horizontal_vector<u64>>> testCases =
-		FileUtil::ReadInputIntoLookupTable<u64, horizontal_vector<u64>>(__FILE__, remainingLines, ':');
+	std::unordered_map<u64, horizontal_vector<u64>> testCases =
+		FileUtil::ReadInputIntoMap<u64, horizontal_vector<u64>>(__FILE__, remainingLines, ':');
 	/*std::unordered_map<u64, horizontal_vector<horizontal_vector<u64>>> testCases =
 		FileUtil::ReadInputIntoLookupTable<u64, horizontal_vector<u64>>(__FILE__, remainingLines, ':', true);*/
 	std::vector<opSig> possibleOperators{ &mul, &add, &concat };
 
 	u64 total = 0;
-	Testing::DebugFile dbg(__FILE__);
 	for (const auto& testCaseSet : testCases)
 	{
-		for (const horizontal_vector<u64>& input : testCaseSet.second)
+		const horizontal_vector<u64>& input = testCaseSet.second;
+
+		std::vector<opSig> bestOperators;
+		for (unsigned int i = 0; i < input.size() - 1; ++i) // We need one fewer operator than the number of numbers in input
 		{
-			std::vector<opSig> operators;
-			for (unsigned int i = 0; i < input.size() - 1; ++i) // We need one fewer operator than the number of numbers in input
-			{
-				// Build the operator set that yields the highest value
-				operators.push_back(&concat);
-			}
-			// Optimisation: if applying the best set of operators yields too low a value, no operator modifications are going to get us there
-			u64 bestSet = ApplyOperators(input, operators);
-			if (bestSet == testCaseSet.first)
-			{
-				total += testCaseSet.first;
-			}
-			else if (bestSet > testCaseSet.first)
-			{
-				std::pair<u64, horizontal_vector<u64>> testCase(testCaseSet.first, input);
-				if (TryEverything(testCase, operators, possibleOperators))
-				{
-					total += testCaseSet.first;
-					std::cout << testCaseSet.first << '\n';
-				}
-			}
-			else
-			{
-				std::pair<u64, horizontal_vector<u64>> testCase(testCaseSet.first, input);
-			}
+			// Build the operator set that yields the highest value
+			bestOperators.push_back(&concat);
 		}
+		// Optimisation: if applying the best set of operators yields too low a value, no operator modifications are going to get us there
+		u64 bestResult = ApplyOperators(input, bestOperators);
+
+		std::vector<opSig> worstOperators;
+		for (unsigned int i = 0; i < input.size() - 1; ++i)
+		{
+			// Build the operator set that yields the lowest value
+			if ((i == 0 && input[i] < 2) || input[i + 1] < 2)
+				worstOperators.push_back(&mul);
+			else
+				worstOperators.push_back(&add);
+		}
+		// Optimisation: if applying the worst set of operators yields too high a value,
+		// no operator modifications are going to get us there
+		u64 worstResult = ApplyOperators(input, worstOperators);
+
+		if (bestResult == testCaseSet.first || worstResult == testCaseSet.first)
+			total += testCaseSet.first;
+		else if (bestResult > testCaseSet.first && worstResult < testCaseSet.first
+			&& TryEverything(testCaseSet, bestOperators, possibleOperators))
+			total += testCaseSet.first;
 	}
 
-	std::cout << total;
+	std::cout << total << std::endl;
 
 	return 0;
 }

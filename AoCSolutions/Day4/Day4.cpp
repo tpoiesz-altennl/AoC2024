@@ -66,13 +66,13 @@ int Day4::Solution1ver1()
 	Grid grid(FileUtil::ReadInputIntoVec<std::string>(__FILE__));
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
-	if (grid.size() < 4 || grid[0].size() < 4)
+	if (grid.height() < 4 || grid.width() < 4)
 		return 1;
 
 	unsigned int totalXMASses = 0;
-	for (unsigned int y = 0; y < grid.size(); ++y)
+	for (unsigned int y = 0; y < grid.height(); ++y)
 	{
-		for (unsigned int x = 0; x < grid[0].size(); ++x)
+		for (unsigned int x = 0; x < grid.width(); ++x)
 		{
 			totalXMASses += MakesXMASver1(grid, vec2(x, y));
 		}
@@ -90,9 +90,9 @@ int MakesXMASver2(const Grid& grid, const Direction dir)
 	{
 	case Direction::UpLeft:
 	{
-		for (unsigned int y = 3; y < grid.size(); ++y)
+		for (unsigned int y = 3; y < grid.height(); ++y)
 		{
-			for (unsigned int x = 3; x < grid.at(0).size(); ++x) // Assume rectangular grid
+			for (unsigned int x = 3; x < grid.width(); ++x) // Assume rectangular grid
 			{
 				if (grid.at(x, y) == 'X' && grid.at(x - 1, y - 1) == 'M' &&
 					grid.at(x - 2, y - 2) == 'A' && grid.at(x - 3, y - 3) == 'S')
@@ -103,9 +103,9 @@ int MakesXMASver2(const Grid& grid, const Direction dir)
 	}
 	case Direction::Up:
 	{
-		for (unsigned int y = 3; y < grid.size(); ++y)
+		for (unsigned int y = 3; y < grid.height(); ++y)
 		{
-			for (unsigned int x = 0; x < grid.at(0).size(); ++x)
+			for (unsigned int x = 0; x < grid.width(); ++x)
 			{
 				if (grid.at(x, y) == 'X' && grid.at(x, y - 1) == 'M' &&
 					grid.at(x, y - 2) == 'A' && grid.at(x, y - 3) == 'S')
@@ -116,9 +116,9 @@ int MakesXMASver2(const Grid& grid, const Direction dir)
 	}
 	case Direction::UpRight:
 	{
-		for (unsigned int y = 3; y < grid.size(); ++y)
+		for (unsigned int y = 3; y < grid.height(); ++y)
 		{
-			for (unsigned int x = 0; x < grid.at(0).size() - 3; ++x)
+			for (unsigned int x = 0; x < grid.width() - 3; ++x)
 			{
 				if (grid.at(x, y) == 'X' && grid.at(x + 1, y - 1) == 'M' &&
 					grid.at(x + 2, y - 2) == 'A' && grid.at(x + 3, y - 3) == 'S')
@@ -156,9 +156,9 @@ int MakesXMASver2(const Grid& grid, const Direction dir)
 	}
 	case Direction::DownLeft:
 	{
-		for (unsigned int y = 0; y < grid.size() - 3; ++y)
+		for (unsigned int y = 0; y < grid.height() - 3; ++y)
 		{
-			for (unsigned int x = 3; x < grid.at(0).size(); ++x)
+			for (unsigned int x = 3; x < grid.width(); ++x)
 			{
 				if (grid.at(x, y) == 'X' && grid.at(x - 1, y + 1) == 'M' &&
 					grid.at(x - 2, y + 2) == 'A' && grid.at(x - 3, y + 3) == 'S')
@@ -169,9 +169,9 @@ int MakesXMASver2(const Grid& grid, const Direction dir)
 	}
 	case Direction::Down:
 	{
-		for (unsigned int y = 0; y < grid.size() - 3; ++y)
+		for (unsigned int y = 0; y < grid.height() - 3; ++y)
 		{
-			for (unsigned int x = 0; x < grid.at(0).size(); ++x)
+			for (unsigned int x = 0; x < grid.width(); ++x)
 			{
 				if (grid.at(x, y) == 'X' && grid.at(x, y + 1) == 'M' &&
 					grid.at(x, y + 2) == 'A' && grid.at(x, y + 3) == 'S')
@@ -182,9 +182,9 @@ int MakesXMASver2(const Grid& grid, const Direction dir)
 	}
 	case Direction::DownRight:
 	{
-		for (unsigned int y = 0; y < grid.size() - 3; ++y)
+		for (unsigned int y = 0; y < grid.height() - 3; ++y)
 		{
-			for (unsigned int x = 0; x < grid.at(0).size() - 3; ++x)
+			for (unsigned int x = 0; x < grid.width() - 3; ++x)
 			{
 				if (grid.at(x, y) == 'X' && grid.at(x + 1, y + 1) == 'M' &&
 					grid.at(x + 2, y + 2) == 'A' && grid.at(x + 3, y + 3) == 'S')
@@ -199,11 +199,11 @@ int MakesXMASver2(const Grid& grid, const Direction dir)
 
 int Day4::Solution1ver2()
 {
-	//std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+	//Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
-	if (grid.size() < 4 || grid[0].size() < 4)
+	if (grid.height() < 4 || grid.width() < 4)
 		return 1;
 
 	unsigned int totalXMASses = 0;
@@ -256,13 +256,13 @@ int Day4::Solution2()
 	Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
 	// Catch this edge case here, so we don't try to access a non-existent vector or string element
-	if (grid.size() < 4 || grid[0].size() < 4)
+	if (grid.height() < 3 || grid.width() < 3)
 		return 1;
 
 	unsigned int totalXMASses = 0;
-	for (unsigned int i = 0; i < grid.size() - 2; ++i)
+	for (unsigned int i = 0; i < grid.height() - 2; ++i)
 	{
-		for (unsigned int j = 0; j < grid[0].size() - 2; ++j)
+		for (unsigned int j = 0; j < grid.width() - 2; ++j)
 		{
 			totalXMASses += MakesMASX(grid, j, i);
 		}

@@ -5,16 +5,16 @@
 #include <string>
 #include <regex>
 
-OrthDirection FindGuard(const std::vector<std::string>& initialMap, int& posX, int& posY)
+OrthDirection FindGuard(const Grid& initialMap, vec2& pos)
 {
 	std::regex reg("[\\^>v<]");
 	for (unsigned int y = 0; y < initialMap.size(); ++y)
 	{
 		std::smatch m;
-		if (std::regex_search(initialMap[y], m, reg))
+		if (std::regex_search(initialMap.at(y), m, reg))
 		{
-			posX = static_cast<int>(m.prefix().length());
-			posY = y;
+			pos.x = static_cast<int>(m.prefix().length());
+			pos.y = y;
 			switch (m[0].str()[0])
 			{
 			case '^':
@@ -34,7 +34,7 @@ OrthDirection FindGuard(const std::vector<std::string>& initialMap, int& posX, i
 }
 
 // Returns false if guard walks off the map
-bool MoveGuard(std::vector<std::string>& map, int& numSteps, int& guardPosX, int& guardPosY, OrthDirection& dir, bool countDuplicateSteps = false)
+bool MoveGuard(Grid& map, int& numSteps, vec2& guardPos, OrthDirection& dir)
 {
 	auto takeStep = [=, &numSteps](char nextPos) mutable -> bool {
 		switch (nextPos)
@@ -45,11 +45,7 @@ bool MoveGuard(std::vector<std::string>& map, int& numSteps, int& guardPosX, int
 			return true;
 		}
 		case 'X':
-		{
-			if (countDuplicateSteps)
-				++numSteps;
 			return true;
-		}
 		case '#':
 		default:
 			return false;
@@ -60,143 +56,58 @@ bool MoveGuard(std::vector<std::string>& map, int& numSteps, int& guardPosX, int
 		switch (dir)
 		{
 		case OrthDirection::Up:
-		{
 			return '^';
-		}
 		case OrthDirection::Right:
-		{
 			return '>';
-		}
 		case OrthDirection::Down:
-		{
 			return 'v';
-		}
 		case OrthDirection::Left:
 		default:
-		{
 			return '<';
-		}
 		}
 		};
 
-	switch (dir)
+	if (!map.IsValidPos(NextPos(guardPos, dir)))
 	{
-	case OrthDirection::Up:
+		++numSteps;
+		map[guardPos] = 'X';
+		return false;
+	}
+	else
 	{
-		if (guardPosY == 0)
+		if (takeStep(map[NextPos(guardPos, dir)]))
 		{
-			++numSteps;
-			map[guardPosY][guardPosX] = 'X';
-			return false;
+			map[guardPos] = 'X';
+			guardPos = NextPos(guardPos, dir);
+			map[guardPos] = getGuardChar(dir);
 		}
 		else
 		{
-			if (takeStep(map[guardPosY - 1][guardPosX]))
-			{
-				map[guardPosY][guardPosX] = 'X';
-				guardPosY -= 1;
-				map[guardPosY][guardPosX] = getGuardChar(dir);
-				return true;
-			}
-			else
-			{
-				map[guardPosY][guardPosX] = getGuardChar(++dir);
-				return true;
-			}
+			map[guardPos] = getGuardChar(++dir);
 		}
-	}
-	case OrthDirection::Right:
-	{
-		if (guardPosX == map[guardPosY].length() - 1)
-		{
-			++numSteps;
-			return false;
-		}
-		else
-		{
-			if (takeStep(map[guardPosY][guardPosX + 1]))
-			{
-				map[guardPosY][guardPosX] = 'X';
-				guardPosX += 1;
-				map[guardPosY][guardPosX] = getGuardChar(dir);
-				return true;
-			}
-			else
-			{
-				map[guardPosY][guardPosX] = getGuardChar(++dir);
-				return true;
-			}
-		}
-	}
-	case OrthDirection::Down:
-	{
-		if (guardPosY == map.size() - 1)
-		{
-			++numSteps;
-			return false;
-		}
-		else
-		{
-			if (takeStep(map[guardPosY + 1][guardPosX]))
-			{
-				map[guardPosY][guardPosX] = 'X';
-				guardPosY += 1;
-				map[guardPosY][guardPosX] = getGuardChar(dir);
-				return true;
-			}
-			else
-			{
-				map[guardPosY][guardPosX] = getGuardChar(++dir);
-				return true;
-			}
-		}
-	}
-	case OrthDirection::Left:
-	default:
-	{
-		if (guardPosX == 0)
-		{
-			++numSteps;
-			return false;
-		}
-		else
-		{
-			if (takeStep(map[guardPosY][guardPosX - 1]))
-			{
-				map[guardPosY][guardPosX] = 'X';
-				guardPosX -= 1;
-				map[guardPosY][guardPosX] = getGuardChar(dir);
-				return true;
-			}
-			else
-			{
-				map[guardPosY][guardPosX] = getGuardChar(++dir);
-				return true;
-			}
-		}
-	}
+		return true;
 	}
 }
 
 int Day6::Solution1()
 {
-	//std::vector<std::string> map = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> input = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+	//Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	Grid grid = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
-	int guardPosX, guardPosY;
-	OrthDirection initDir = FindGuard(input, guardPosX, guardPosY);
+	vec2 guardPos;
+	OrthDirection initDir = FindGuard(grid, guardPos);
 
 	int numSteps = 0;
-	while (MoveGuard(input, numSteps, guardPosX, guardPosY, initDir)) {}
+	while (MoveGuard(grid, numSteps, guardPos, initDir)) {}
 
-	Testing::DebugFile dbg(__FILE__);
-	dbg.OutputResultGrid<std::string>(input);
+	/*Testing::DebugFile dbg(__FILE__);
+	dbg.OutputGrid<std::string>(grid.container);*/
 
 	std::cout << numSteps;
 	return 0;
 }
 
-bool GuardLoops(std::vector<std::string> map, int posX, int posY, OrthDirection dir, Testing::DebugFile* dbg = nullptr)
+bool GuardLoops(Grid map, vec2 pos, OrthDirection dir, Testing::DebugFile* dbg = nullptr)
 {
 	int pathLength = 0;
 	int upPathLength = -1, rightPathLength = -1, downPathLength = -1, leftPathLength = -1;
@@ -206,7 +117,7 @@ bool GuardLoops(std::vector<std::string> map, int posX, int posY, OrthDirection 
 	while (true) // always returns within body, either by hitting a loop or running off the map
 	{
 		while (prevDir == dir && onGrid)
-			onGrid = MoveGuard(map, pathLength, posX, posY, dir);
+			onGrid = MoveGuard(map, pathLength, pos, dir);
 		if (onGrid)
 		{
 			switch (prevDir)
@@ -241,7 +152,7 @@ bool GuardLoops(std::vector<std::string> map, int posX, int posY, OrthDirection 
 				if (dbg)
 				{
 					dbg->Overwrite();
-					dbg->OutputResultGrid(map);
+					dbg->OutputGrid(map);
 					__debugbreak(); // Break program so we can see the output (can safely continue afterwards)
 				}
 				return true;
@@ -257,61 +168,33 @@ bool GuardLoops(std::vector<std::string> map, int posX, int posY, OrthDirection 
 
 int Day6::Solution2()
 {
-	//std::vector<std::string> map = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
-	std::vector<std::string> map = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
+	//Grid map = FileUtil::ReadInputIntoVec<std::string>(__FILE__, true);
+	Grid map = FileUtil::ReadInputIntoVec<std::string>(__FILE__);
 
-	int guardPosX, guardPosY;
-	OrthDirection dir = FindGuard(map, guardPosX, guardPosY);
+	vec2 guardPos;
+	OrthDirection dir = FindGuard(map, guardPos);
 
 	Testing::DebugFile dbg(__FILE__);
 	int dummy = 0;
 	int numPossibleObstacles = 0;
 	do
 	{
-		int nextX = guardPosX, nextY = guardPosY;
-		switch (dir)
+		vec2 nextPos = NextPos(guardPos, dir);
+		if (map.IsValidPos(nextPos) && map[nextPos] != '#' && map[nextPos] != 'X')
 		{
-		case OrthDirection::Up:
-		{
-			nextY -= 1;
-			break;
-		}
-		case OrthDirection::Right:
-		{
-			nextX += 1;
-			break;
-		}
-		case OrthDirection::Down:
-		{
-			nextY += 1;
-			break;
-		}
-		case OrthDirection::Left:
-		{
-			nextX -= 1;
-			break;
-		}
-		}
-		
-		auto validGridPos = [&](int posX, int posY) -> bool {
-			return (posY >= 0 && posY < map.size() && posX >= 0 && posX < map[0].size());
-			};
-
-		if (validGridPos(nextX, nextY) && map[nextY][nextX] != '#' && map[nextY][nextX] != 'X')
-		{
-			char prevChar = map[nextY][nextX];
-			map[nextY][nextX] = '#';
+			char prevChar = map[nextPos];
+			map[nextPos] = '#';
 			++dir;
 			//if (GuardLoops(map, guardPosX, guardPosY, dir, &dbg))
-			if (GuardLoops(map, guardPosX, guardPosY, dir))
+			if (GuardLoops(map, guardPos, dir))
 			{
 				++numPossibleObstacles;
 			}
-			map[nextY][nextX] = prevChar;
+			map[nextPos] = prevChar;
 			--dir;
 		}
 
-	} while (MoveGuard(map, dummy, guardPosX, guardPosY, dir));
+	} while (MoveGuard(map, dummy, guardPos, dir));
 
 	std::cout << numPossibleObstacles;
 	return 0;
