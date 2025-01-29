@@ -28,7 +28,8 @@ std::map<vec2, unsigned int> TraversePath(const Grid& grid)
 		}
 		else
 		{
-			for (OrthDirection checkDir = currDir - 1; checkDir != GetOppositeDir(currDir); checkDir += 2)
+			// There's no dead ends in the grid, so this always terminates
+			for (OrthDirection checkDir = currDir - 1; ; checkDir += 2)
 			{
 				if (grid.at(NextPos(currPos, checkDir)) != '#')
 				{
@@ -88,44 +89,31 @@ unsigned int CountHighValueCheats2(const std::map<vec2, unsigned int>& pathLooku
 	for (const auto& pair : pathLookup)
 	{
 		vec2 centre = pair.first;
-		int range = 0;
-		bool increaseRange = true;
-		for (int y = centre.y - cheatRange; y <= centre.y + cheatRange; ++y)
+		// Range is the range of the inner loop, which we increment and then decrement in the outer loop. This makes a diamond-shaped for-loop.
+		// We're skipping past any cheat checks that put us outside of the grid borders, 
+		// so we initialise range as though it has been incremented past that point
+		int range = (centre.y - cheatRange >= 1 ? 0 : cheatRange - centre.y + 1);
+		bool increaseRange = range < cheatRange;
+		for (int y = std::max(centre.y - cheatRange, 1); y <= std::min(centre.y + cheatRange, gridH - 1); ++y)
 		{
-			// Ignore grid edges, they only consist of walls
-			if (y < gridH - 1)
+			for (int x = std::max(centre.x - range, 1); x <= std::min(centre.x + range, gridW - 1); ++x)
 			{
-				if (y >= 1)
+				vec2 skipPos(x, y);
+				auto it = pathLookup.find(skipPos);
+				if (it != pathLookup.end())
 				{
-					for (int x = centre.x - range; x <= centre.x + range; ++x)
+					unsigned int cheatDist = std::abs(centre.y - y) + std::abs(centre.x - x);
+					if (cheatDist > 1) // No point checking a "cheat" that is just one step (it doesn't go through walls then)
 					{
-						// Ignore grid edges, they only consist of walls
-						if (x < gridW - 1)
-						{
-							if (x >= 1)
-							{
-								vec2 skipPos(x, y);
-								auto it = pathLookup.find(skipPos);
-								if (it != pathLookup.end())
-								{
-									unsigned int cheatDist = std::abs(centre.y - y) + std::abs(centre.x - x);
-									if (cheatDist > 1)
-									{
-										unsigned int skipValue = 
-											(it->second > pair.second ? it->second - pair.second : pair.second - it->second) - cheatDist;
-										if (skipValue >= valueThreshold)
-											++numValuableCheats;
-									}
-								}
-							}
-						}
-						else // Stop checking if there are only positions outside of grid bounds left
-							break;
+						// The conditional if is just an abs() (which cannot be used for unsigned ints).
+						// There is no scenario in which the cheatDist is larger than the number of steps saved by the cheat.
+						unsigned int skipValue = 
+							(it->second > pair.second ? it->second - pair.second : pair.second - it->second) - cheatDist;
+						if (skipValue >= valueThreshold)
+							++numValuableCheats;
 					}
 				}
 			}
-			else // Stop checking if there are only positions outside of grid bounds left
-				break;
 
 			if (increaseRange)
 				++range;

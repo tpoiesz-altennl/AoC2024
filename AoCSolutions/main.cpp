@@ -33,7 +33,7 @@ int main()
 {
     unsigned int iter = 1000;
     //Testing::TimeSolution(Day12::Solution2, iter);
-    int exit2 = Day16::Solution2();
+    int exit2 = Day20::Solution2();
     //int exit3 = Day4::Solution2();
     return 0;
 }
